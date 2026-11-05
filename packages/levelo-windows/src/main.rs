@@ -1,15 +1,25 @@
+#![allow(dead_code)]
+mod canvas;
 mod controls;
-mod registry;
+mod command;
 
-use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
-use windows::Win32::Graphics::Gdi::{GetStockObject, HBRUSH, HDC, WHITE_BRUSH, SetBkMode, TRANSPARENT};
+use canvas::SkiaRenderer;
+use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
+use windows::Win32::Graphics::Gdi::{
+    BI_RGB, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, GetStockObject, HBRUSH, HDC, SRCCOPY,
+    SetBkMode, StretchDIBits, TRANSPARENT, WHITE_BRUSH,
+};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::WindowsAndMessaging::{
-    CS_HREDRAW, CS_VREDRAW, CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, MSG,
-    PostQuitMessage, RegisterClassW, SW_SHOW, ShowWindow, TranslateMessage, WM_COMMAND, WM_DESTROY,
-    WNDCLASSW, WS_OVERLAPPEDWINDOW, WM_CTLCOLORSTATIC,
+    CS_HREDRAW, CS_VREDRAW, CreateWindowExW, DefWindowProcW, DispatchMessageW, GetClientRect,
+    GetMessageW, IDC_ARROW, LoadCursorW, MSG, PostQuitMessage, RegisterClassW, SW_SHOW, ShowWindow,
+    TranslateMessage, WM_COMMAND, WM_CTLCOLORSTATIC, WM_DESTROY, WM_PAINT, WNDCLASSW,
+    WS_OVERLAPPEDWINDOW,
 };
 use windows::core::{Result, w};
+
+
+static mut RENDERER: Option<SkiaRenderer> = None;
 
 // Main Window Procedure callback
 unsafe extern "system" fn window_proc(
@@ -29,10 +39,61 @@ unsafe extern "system" fn window_proc(
         }
         WM_CTLCOLORSTATIC => {
             let hdc = HDC(wparam.0 as _);
-            unsafe { 
+            unsafe {
                 SetBkMode(hdc, TRANSPARENT);
                 LRESULT(GetStockObject(WHITE_BRUSH).0 as _)
             }
+        }
+        WM_PAINT => {
+            let mut ps = windows::Win32::Graphics::Gdi::PAINTSTRUCT::default();
+            let hdc = unsafe { windows::Win32::Graphics::Gdi::BeginPaint(hwnd, &mut ps) };
+
+            let mut rect = RECT::default();
+            let _ = unsafe { GetClientRect(hwnd, &mut rect) };
+            let width = rect.right - rect.left;
+            let height = rect.bottom - rect.top;
+
+            if width > 0 && height > 0 {
+                let batch = command::get_initial_operation_batch();
+                let elements = command::build_scene_from_batch(&batch);
+
+                unsafe {
+                    if let Some(ref renderer ) = RENDERER {
+                        if let Some(pixels) = renderer.render(width, height, &elements) {
+                            let mut bmi = BITMAPINFO {
+                                bmiHeader: BITMAPINFOHEADER {
+                                    biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                                    biWidth: width,
+                                    biHeight: -height,
+                                    biPlanes: 1,
+                                    biBitCount: 32,
+                                    biCompression: BI_RGB.0,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            };
+                            StretchDIBits(
+                                hdc,
+                                0,
+                                0,
+                                width,
+                                height,
+                                0,
+                                0,
+                                width,
+                                height,
+                                Some(pixels.as_ptr() as *const _),
+                                &mut bmi,
+                                DIB_RGB_COLORS,
+                                SRCCOPY,
+                            );
+                        }
+                    }
+                }
+            }
+
+            let _ = unsafe { windows::Win32::Graphics::Gdi::EndPaint(hwnd, &ps) };
+            LRESULT(0)
         }
         WM_DESTROY => {
             unsafe { PostQuitMessage(0) };
@@ -53,6 +114,7 @@ fn main() -> Result<()> {
             hInstance: instance.into(),
             lpszClassName: class_name,
             hbrBackground: HBRUSH(GetStockObject(WHITE_BRUSH).0),
+            hCursor: LoadCursorW(None, IDC_ARROW).unwrap_or_default(),
             ..Default::default()
         };
 
@@ -74,16 +136,7 @@ fn main() -> Result<()> {
         )?;
 
         let _ = ShowWindow(main_hwnd, SW_SHOW);
-
-        let _btn = controls::create_button(main_hwnd, "Click Me", 50, 50, 120, 35, 1);
-        let _lbl =
-            controls::create_static(main_hwnd, "Levelo Engine - Pure Win32", 50, 100, 220, 25, 2);
-        let _inp = controls::create_input(main_hwnd, "Type something here...", 50, 140, 220, 30, 3);
-
-        controls::apply_modern_font(_btn);
-        controls::apply_modern_font(_lbl);
-        controls::apply_modern_font(_inp);
-        controls::enable_input_shortcuts(_inp);
+        RENDERER = Some(SkiaRenderer::new());
 
         let mut msg = MSG::default();
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {

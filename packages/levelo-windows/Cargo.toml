@@ -12,3 +12,4 @@ windows = { version = "0.62.2", features = [
     "Win32_UI_Input",
     "Win32_UI_Input_KeyboardAndMouse",
 ] }
+skia-safe = "0.153.3"

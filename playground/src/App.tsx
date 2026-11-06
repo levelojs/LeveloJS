@@ -63,16 +63,12 @@ export function App() {
             console.log("[Toggle] after:", showDynamic());
           }}
         >
-          {showDynamic()
-            ? "Hide Dynamic Content"
-            : "Show Dynamic Content"}
+          {showDynamic() ? "Hide Dynamic Content" : "Show Dynamic Content"}
         </button>
 
         <div>
           {showDynamic() ? (
-            <p>
-              Dynamic content is visible. Count: {value()}
-            </p>
+            <p>Dynamic content is visible. Count: {value()}</p>
           ) : null}
         </div>
       </section>
@@ -95,8 +91,7 @@ export function App() {
         </p>
 
         <p>
-          Mathematical text:
-          H<sub>2</sub>O and E=mc<sup>2</sup>
+          Mathematical text: H<sub>2</sub>O and E=mc<sup>2</sup>
         </p>
 
         <p>
@@ -108,7 +103,7 @@ export function App() {
         </blockquote>
 
         <pre>
-{`function App() {
+          {`function App() {
   return <h1>Hello LeveloJS</h1>;
 }`}
         </pre>
@@ -161,9 +156,7 @@ export function App() {
             height={300}
           />
 
-          <figcaption>
-            Image element rendered by LeveloJS.
-          </figcaption>
+          <figcaption>Image element rendered by LeveloJS.</figcaption>
         </figure>
 
         <p>
@@ -205,9 +198,7 @@ export function App() {
         <details>
           <summary>Open Details</summary>
 
-          <p>
-            This content is revealed when the details element is opened.
-          </p>
+          <p>This content is revealed when the details element is opened.</p>
         </details>
       </section>
 
@@ -225,9 +216,7 @@ export function App() {
           <fieldset>
             <legend>User Information</legend>
 
-            <label htmlFor="name">
-              Name
-            </label>
+            <label htmlFor="name">Name</label>
 
             <input
               id="name"
@@ -239,49 +228,23 @@ export function App() {
               }}
             />
 
-            <label htmlFor="email">
-              Email
-            </label>
+            <label htmlFor="email">Email</label>
 
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-            />
+            <input id="email" type="email" placeholder="you@example.com" />
 
-            <label htmlFor="password">
-              Password
-            </label>
+            <label htmlFor="password">Password</label>
 
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter password"
-            />
+            <input id="password" type="password" placeholder="Enter password" />
 
-            <label htmlFor="age">
-              Age
-            </label>
+            <label htmlFor="age">Age</label>
 
-            <input
-              id="age"
-              type="number"
-              min={1}
-              max={100}
-            />
+            <input id="age" type="number" min={1} max={100} />
 
-            <label htmlFor="birthday">
-              Date
-            </label>
+            <label htmlFor="birthday">Date</label>
 
-            <input
-              id="birthday"
-              type="date"
-            />
+            <input id="birthday" type="date" />
 
-            <label htmlFor="country">
-              Country
-            </label>
+            <label htmlFor="country">Country</label>
 
             <select
               id="country"
@@ -290,80 +253,43 @@ export function App() {
                 console.log("[Form] country changed:", target.value);
               }}
             >
-              <option value="">
-                Select a country
-              </option>
+              <option value="">Select a country</option>
 
-              <option value="nigeria">
-                Nigeria
-              </option>
+              <option value="nigeria">Nigeria</option>
 
-              <option value="ghana">
-                Ghana
-              </option>
+              <option value="ghana">Ghana</option>
 
-              <option value="kenya">
-                Kenya
-              </option>
+              <option value="kenya">Kenya</option>
             </select>
 
-            <label htmlFor="message">
-              Message
-            </label>
+            <label htmlFor="message">Message</label>
 
-            <textarea
-              id="message"
-              rows={5}
-              placeholder="Write something..."
-            />
+            <textarea id="message" rows={5} placeholder="Write something..." />
 
             <p>Preferred platform</p>
 
             <label>
-              <input
-                type="radio"
-                name="platform"
-                value="web"
-              />
+              <input type="radio" name="platform" value="web" />
               Web
             </label>
 
             <label>
-              <input
-                type="radio"
-                name="platform"
-                value="android"
-              />
+              <input type="radio" name="platform" value="android" />
               Android
             </label>
 
             <label>
-              <input
-                type="checkbox"
-                name="agreement"
-              />
-              I agree to the test conditions
+              <input type="checkbox" name="agreement" />I agree to the test
+              conditions
             </label>
 
-            <label htmlFor="volume">
-              Volume
-            </label>
+            <label htmlFor="volume">Volume</label>
 
-            <input
-              id="volume"
-              type="range"
-              min={0}
-              max={100}
-              value={50}
-            />
+            <input id="volume" type="range" min={0} max={100} value={50} />
 
-            <button type="submit">
-              Submit Form
-            </button>
+            <button type="submit">Submit Form</button>
 
-            <button type="reset">
-              Reset
-            </button>
+            <button type="reset">Reset</button>
           </fieldset>
         </form>
       </section>
@@ -374,9 +300,7 @@ export function App() {
         <h2>Table Elements</h2>
 
         <table>
-          <caption>
-            LeveloJS Renderer Test
-          </caption>
+          <caption>LeveloJS Renderer Test</caption>
 
           <thead>
             <tr>
@@ -414,9 +338,7 @@ export function App() {
 
           <tfoot>
             <tr>
-              <td colSpan={3}>
-                Renderer element test
-              </td>
+              <td colSpan={3}>Renderer element test</td>
             </tr>
           </tfoot>
         </table>
@@ -429,20 +351,13 @@ export function App() {
 
         <p>Download progress:</p>
 
-        <progress
-          value={70}
-          max={100}
-        >
+        <progress value={70} max={100}>
           70%
         </progress>
 
         <p>System capacity:</p>
 
-        <meter
-          min={0}
-          max={100}
-          value={45}
-        >
+        <meter min={0} max={100} value={45}>
           45%
         </meter>
       </section>
@@ -450,13 +365,9 @@ export function App() {
       <hr />
 
       <footer>
-        <p>
-          LeveloJS Web Renderer Test Page
-        </p>
+        <p>LeveloJS Web Renderer Test Page</p>
 
-        <a href="#top">
-          Back to top
-        </a>
+        <a href="#top">Back to top</a>
       </footer>
     </main>
   );

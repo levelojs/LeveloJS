@@ -1,16 +1,16 @@
 import { beginBuild, endBuild } from "./jsx-runtime.js";
-import { InternalRenderNode } from "./renderer/tree/InternalRenderNode.js";
-import { RenderTree } from "./renderer/tree/RenderTree.js";
-import { DefaultRenderer } from "./renderer/DefaultRenderer.js";
-import { NativeNodeRegistry } from "./renderer/platforms/web/NativeNodeRegistry.js";
-import { WebAdapter } from "./renderer/platforms/web/WebAdapter.js";
-import { LeveloWasmBridge } from "./renderer/native/LeveloWasmBridge.js";
-import type { NativeRendererBridge } from "./renderer/native/NativeRendererBridge.js";
+import { InternalRenderNode } from "../renderer/tree/InternalRenderNode.js";
+import { RenderTree } from "../renderer/tree/RenderTree.js";
+import { DefaultRenderer } from "../renderer/DefaultRenderer.js";
+import { NativeNodeRegistry } from "../renderer/platforms/web/NativeNodeRegistry.js";
+import { WebAdapter } from "../renderer/platforms/web/WebAdapter.js";
+import { LeveloWasmBridge } from "../renderer/native/LeveloWasmBridge.js";
+import type { NativeRendererBridge } from "../renderer/native/NativeRendererBridge.js";
 import {
   type Owner,
   setOwner,
   disposeOwner,
-} from "./reactivity/owner.js";
+} from "../reactivity/owner.js";
 
 export type RenderInput = InternalRenderNode | (() => InternalRenderNode);
 
@@ -113,7 +113,7 @@ function renderOnce(built: BuiltRoot, instance: MountedRenderer): void {
  * Throws synchronously if the container is null, already mounted, or the
  * input is not a Levelo element or component function.
  */
-export function render(
+export function renderNative(
   input: RenderInput,
   container: HTMLElement | null,
 ): void {

@@ -57,7 +57,7 @@ export class InternalRenderNode
   constructor(
     readonly id: number,
     readonly type: string,
-  ) {}
+  ) { }
 
   appendChild(
     child: InternalRenderNode,

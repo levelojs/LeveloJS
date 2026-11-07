@@ -24,15 +24,20 @@
       "require": "./dist/jsx-runtime.cjs",
       "default": "./dist/jsx-runtime.js"
     },
-    "./wasm": {
-      "types": "./dist/wasm/levelo_wasm.d.ts",
-      "import": "./dist/wasm/levelo_wasm.js",
-      "default": "./dist/wasm/levelo_wasm.js"
+    "./native/jsx-runtime": {
+      "import": "./dist/native/jsx-runtime.js",
+      "require": "./dist/native/jsx-runtime.cjs",
+      "types": "./dist/native/jsx-runtime.d.ts"
+    },
+    "./native/emitter": {
+      "import": "./dist/native/emitter.js",
+      "require": "./dist/native/emitter.cjs",
+      "types": "./dist/native/emitter.d.ts"
     },
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup && node scripts/copy-wasm.mjs",
+    "build": "tsup",
     "dev": "tsup --watch",
     "prepublishOnly": "npm run build",
     "test": "vitest run",

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, unmount, setBridgeFactory } from "./dom.js";
+import { render, unmount, setBridgeFactory } from "./native/dom.js";
 import { h } from "./jsx-runtime.js";
 import { state, computed, cleanup } from "./reactivity/index.js";
 import type { NativeRendererBridge } from "./renderer/native/NativeRendererBridge.js";

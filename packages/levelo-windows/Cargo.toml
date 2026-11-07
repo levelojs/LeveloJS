@@ -3,6 +3,10 @@ name = "levelo-windows"
 version = "0.0.1"
 edition = "2024"
 
+[lib]
+name = "levelo_windows"
+path = "src/lib.rs"
+
 [dependencies]
 windows = { version = "0.62.2", features = [
     "Win32_Foundation",
@@ -12,5 +16,6 @@ windows = { version = "0.62.2", features = [
     "Win32_UI_Input",
     "Win32_UI_Input_KeyboardAndMouse",
 ] }
-skia-safe = "0.153.3"
+skia-safe = { version = "0.153.3", features = ["textlayout"] }
+taffy = "0.15.1"
 levelo-core = { path = "../../native/levelo-core" }

@@ -1,11 +1,10 @@
 // src/runtime/router.ts
 import { h } from "./jsx-runtime.js";
-import { render, unmount } from "./dom.js";
+import { render, unmount } from "./web/dom.js";
 import { applyHeadUpdates } from "./head.js";
 import { getClean404Component } from "./templates/error404.js";
-import { InternalRenderNode } from "./renderer/tree/InternalRenderNode.js";
 
-type RouteComponent = () => InternalRenderNode;
+type RouteComponent = () => Element | null | undefined;
 
 const routes = new Map<string, RouteComponent>();
 const routeListeners = new Set<(path: string) => void>();
@@ -97,7 +96,7 @@ export function Pages(props: PagesProps): HTMLElement {
       (child as { type?: unknown }).type === "PAGE_CONFIG"
     ) {
       const page = child as unknown as PageProps;
-      routes.set(normalizePath(page.path), page.component);
+      routes.set(normalizePath(page.path), page.component as RouteComponent);
     }
   }
 
@@ -115,7 +114,7 @@ export function Pages(props: PagesProps): HTMLElement {
     if (Component) {
       render(Component, container);
     } else {
-      render(getClean404Component(h), container);
+      render(() => getClean404Component(h) as unknown as Element, container);
     }
 
     window.scrollTo(0, 0);

@@ -1,8 +1,10 @@
 // packages/levelo-windows/src/command.rs
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::path::Path;
 use skia_safe::Color;
-use crate::controls::UiNode;
+use crate::style::UiNode;
 
 /// Represents a unique DOM node ID matching levelo-core
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -183,7 +185,6 @@ impl IntoIterator for OperationBatch {
 pub fn get_initial_operation_batch() -> OperationBatch {
     let mut batch = OperationBatch::new();
 
-    // 1. Create Header Text node
     batch.push(Operation::CreateText {
         node: NodeId::new(1),
         text: "Levelo Skia Canvas Test from Siam, Do you ready?".to_string(),
@@ -204,7 +205,6 @@ pub fn get_initial_operation_batch() -> OperationBatch {
         value: "22".to_string(),
     });
 
-    // 2. Create Button Container node
     batch.push(Operation::CreateElement {
         node: NodeId::new(101),
         element_type: "button".to_string(),
@@ -240,7 +240,6 @@ pub fn get_initial_operation_batch() -> OperationBatch {
         value: "#0d6efd".to_string(),
     });
 
-    // 3. Create Child Text inside Button
     batch.push(Operation::CreateText {
         node: NodeId::new(102),
         text: "Click Here".to_string(),
@@ -266,7 +265,6 @@ pub fn get_initial_operation_batch() -> OperationBatch {
         value: "#ffffff".to_string(),
     });
 
-    // 4. Attach Child Text to Button Container
     batch.push(Operation::AppendChild {
         parent: NodeId::new(101),
         child: NodeId::new(102),
@@ -275,18 +273,91 @@ pub fn get_initial_operation_batch() -> OperationBatch {
     batch
 }
 
-/// Helper function to parse hex colors like "#ffffff" or "#0d6efd"
-fn parse_hex_color(hex: &str) -> Color {
-    let clean = hex.trim_start_matches('#');
-    if clean.len() == 6 {
-        if let Ok(val) = u32::from_str_radix(clean, 16) {
+/// Parses a numeric style value, accepting an optional "px" suffix ("20" or "20px")
+fn parse_px(value: &str) -> Option<f32> {
+    value
+        .trim()
+        .trim_end_matches("px")
+        .trim()
+        .parse::<f32>()
+        .ok()
+}
+
+/// Parses "#rrggbb", "#rgb" and a few common color names
+fn parse_color(input: &str) -> Color {
+    let value = input.trim().to_lowercase();
+
+    match value.as_str() {
+        "white" => return Color::WHITE,
+        "black" => return Color::BLACK,
+        "red" => return Color::RED,
+        "green" => return Color::GREEN,
+        "blue" => return Color::BLUE,
+        "gray" | "grey" => return Color::GRAY,
+        "transparent" => return Color::TRANSPARENT,
+        _ => {}
+    }
+
+    let clean = value.trim_start_matches('#');
+
+    // Expand shorthand "#abc" into "#aabbcc"
+    let expanded: String = if clean.len() == 3 {
+        clean.chars().flat_map(|c| [c, c]).collect()
+    } else {
+        clean.to_string()
+    };
+
+    if expanded.len() == 6 {
+        if let Ok(val) = u32::from_str_radix(&expanded, 16) {
             let r = ((val >> 16) & 0xFF) as u8;
             let g = ((val >> 8) & 0xFF) as u8;
             let b = (val & 0xFF) as u8;
             return Color::from_rgb(r, g, b);
         }
     }
+
     Color::BLACK
+}
+
+/// Default font sizes roughly matching the browser user-agent stylesheet
+fn default_font_size(tag: &str) -> Option<f32> {
+    match tag {
+        "h1" => Some(32.0),
+        "h2" => Some(24.0),
+        "h3" => Some(18.7),
+        "h4" => Some(16.0),
+        "h5" => Some(13.3),
+        "h6" => Some(10.7),
+        "small" => Some(13.0),
+        _ => None,
+    }
+}
+
+/// Pushes a node, then its children depth-first, applying default styles and inheritance
+fn collect_in_paint_order(
+    id: u64,
+    nodes: &mut HashMap<u64, UiNode>,
+    out: &mut Vec<UiNode>,
+    inherited_font_size: Option<f32>,
+    inherited_color: Option<Color>,
+) {
+    if let Some(mut node) = nodes.remove(&id) {
+        if node.style.font_size.is_none() {
+            node.style.font_size = default_font_size(&node.tag).or(inherited_font_size);
+        }
+        if node.style.color.is_none() {
+            node.style.color = inherited_color;
+        }
+
+        let font_size = node.style.font_size;
+        let color = node.style.color;
+        let children = node.children.clone();
+        out.push(node);
+
+        for child_id in children {
+            collect_in_paint_order(child_id, nodes, out, font_size, color);
+        }
+    }
 }
 
 /// Constructs a unified UiNode scene tree from raw operation batch
@@ -319,21 +390,21 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
             Operation::SetStyle { node, name, value } => {
                 if let Some(target) = nodes.get_mut(&node.0) {
                     match name.as_str() {
-                        "x" => target.style.x = value.parse().ok(),
-                        "y" => target.style.y = value.parse().ok(),
-                        "width" => target.style.width = value.parse().ok(),
-                        "height" => target.style.height = value.parse().ok(),
-                        "font-size" => target.style.font_size = value.parse().ok(),
-                        "border-radius" => target.style.border_radius = value.parse().ok(),
-                        "border-width" => target.style.border_width = value.parse().ok(),
+                        "x" => target.style.x = parse_px(value),
+                        "y" => target.style.y = parse_px(value),
+                        "width" => target.style.width = parse_px(value),
+                        "height" => target.style.height = parse_px(value),
+                        "font-size" => target.style.font_size = parse_px(value),
+                        "border-radius" => target.style.border_radius = parse_px(value),
+                        "border-width" => target.style.border_width = parse_px(value),
                         "background" | "background-color" => {
-                            target.style.background_color = Some(parse_hex_color(value));
+                            target.style.background_color = Some(parse_color(value));
                         }
                         "color" => {
-                            target.style.color = Some(parse_hex_color(value));
+                            target.style.color = Some(parse_color(value));
                         }
                         "border-color" => {
-                            target.style.border_color = Some(parse_hex_color(value));
+                            target.style.border_color = Some(parse_color(value));
                         }
                         _ => {}
                     }
@@ -343,12 +414,140 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
         }
     }
 
-    // Preserve paint order
-    let mut result = Vec::new();
-    for id in render_order {
-        if let Some(node) = nodes.remove(&id) {
-            result.push(node);
+    // Roots are nodes that never appear as a child of another node.
+    // JSX evaluates children before parents, so creation order is not paint order.
+    let child_ids: HashSet<u64> = nodes
+        .values()
+        .flat_map(|n| n.children.iter().copied())
+        .collect();
+
+    let mut result = Vec::with_capacity(nodes.len());
+
+    for id in &render_order {
+        if !child_ids.contains(id) {
+            collect_in_paint_order(*id, &mut nodes, &mut result, None, None);
         }
     }
+
+    // Safety net: nodes whose parent was never created still get painted
+    for id in &render_order {
+        collect_in_paint_order(*id, &mut nodes, &mut result, None, None);
+    }
+
     result
+}
+
+/// Reads raw `.bin` payload and reconstructs the universal OperationBatch
+pub fn decode_binary_file<P: AsRef<Path>>(path: P) -> std::io::Result<OperationBatch> {
+    let bytes = fs::read(path)?;
+    let mut batch = OperationBatch::new();
+    let mut offset = 0;
+
+    while offset < bytes.len() {
+        let opcode = bytes[offset];
+        offset += 1;
+
+        match opcode {
+            0x01 => {
+                if offset + 10 > bytes.len() { break; }
+                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
+                offset += 2;
+                if offset + len > bytes.len() { break; }
+                let tag = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
+                offset += len;
+
+                batch.push(Operation::CreateElement {
+                    node: NodeId::new(node),
+                    element_type: tag,
+                });
+            }
+            0x02 => {
+                if offset + 10 > bytes.len() { break; }
+                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
+                offset += 2;
+                if offset + len > bytes.len() { break; }
+                let text = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
+                offset += len;
+
+                batch.push(Operation::CreateText {
+                    node: NodeId::new(node),
+                    text,
+                });
+            }
+            0x03 => {
+                if offset + 16 > bytes.len() { break; }
+                let parent = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+                let child = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+
+                batch.push(Operation::AppendChild {
+                    parent: NodeId::new(parent),
+                    child: NodeId::new(child),
+                });
+            }
+            0x04 => {
+                if offset + 11 > bytes.len() { break; }
+                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+                let key_id = bytes[offset];
+                offset += 1;
+                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
+                offset += 2;
+                if offset + len > bytes.len() { break; }
+                let val = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
+                offset += len;
+
+                let key_name = match key_id {
+                    1 => "x",
+                    2 => "y",
+                    3 => "width",
+                    4 => "height",
+                    5 => "font-size",
+                    6 => "border-radius",
+                    7 => "border-width",
+                    8 => "background",
+                    9 => "color",
+                    10 => "border-color",
+                    _ => continue,
+                };
+
+                batch.push(Operation::SetStyle {
+                    node: NodeId::new(node),
+                    name: key_name.to_string(),
+                    value: val,
+                });
+            }
+            0x05 => {
+                if offset + 17 > bytes.len() { break; }
+                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+                let event_id = bytes[offset];
+                offset += 1;
+                let listener_id = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
+                offset += 8;
+
+                let event_name = match event_id {
+                    1 => "click",
+                    2 => "mousedown",
+                    3 => "mouseup",
+                    4 => "input",
+                    _ => "unknown",
+                };
+
+                batch.push(Operation::AddEventListener {
+                    node: NodeId::new(node),
+                    event: event_name.to_string(),
+                    listener_id,
+                });
+            }
+            _ => break,
+        }
+    }
+
+    Ok(batch)
 }

@@ -1,0 +1,200 @@
+// packages/levelojs/src/runtime/web/jsx-runtime.ts
+
+import { effect } from '../reactivity/index.js';
+import type { JSX as LeveloJSX } from '../jsx/jsx.d.ts';
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const MATH_NS = "http://www.w3.org/1998/Math/MathML";
+
+export type TagType = keyof LeveloJSX["IntrinsicElements"] | ((props: any) => Element) | (string & {});
+type lastAnchorType = Comment | Element;
+
+export function h(tag: TagType, props: Record<string, any> | null, ...children: any[]): Element {
+  const safeProps: Record<string, any> = props || {};
+  let element: Element;
+
+  if ('className' in safeProps) {
+    const descriptor = Object.getOwnPropertyDescriptor(safeProps, 'className');
+    if (descriptor) {
+      Object.defineProperty(safeProps, 'class', descriptor);
+    } else {
+      safeProps.class = safeProps.className;
+    }
+    delete safeProps.className;
+  }
+
+  if (typeof tag === 'function') {
+    safeProps.children = children.length === 1 ? children[0] : children;
+    return tag(safeProps);
+  }
+
+  const namespace =
+    safeProps.__namespace ||
+    (tag === 'svg' ? SVG_NS :
+    tag === 'math' ? MATH_NS :
+    null);
+
+  if (namespace) {
+    element = document.createElementNS(namespace, tag as any);
+  } else {
+    element = document.createElement(tag as any);
+  }
+
+  Object.entries(safeProps).forEach(([key, value]) => {
+    if (key === 'children') return;
+
+    let targetKey = key;
+
+    if (key === "renderString") {
+      element.innerHTML = String(value);
+      return;
+    }
+
+    if (key === 'ref') {
+      if (typeof value === 'function') {
+        value(element);
+      } else if (value && typeof value === 'object') {
+        value.current = element;
+      }
+      return;
+    }
+
+    if ((tag === 'input' || tag === "textarea" || tag === "select") && targetKey === 'value') {
+      const inputElement = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+      const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);
+
+      if (descriptor && descriptor.get) {
+        effect(() => {
+          let val = safeProps[key];
+          if (typeof val === 'function') val = val();
+          inputElement.value = val !== false && val !== null && val !== undefined ? String(val) : '';
+        });
+      } else if (typeof value === 'function') {
+        effect(() => {
+          inputElement.value = String(value());
+        });
+      } else {
+        inputElement.value = value !== false && value !== null && value !== undefined ? String(value) : '';
+      }
+      return;
+    }
+
+    if (targetKey.startsWith('on') && typeof value === 'function') {
+      const eventName = targetKey.toLowerCase().substring(2);
+      element.addEventListener(eventName, value);
+      return;
+    }
+
+    if (namespace === SVG_NS) {
+      const camelCaseExceptions = ['viewBox', 'gradientTransform', 'gradientUnits', 'patternUnits'];
+      if (!camelCaseExceptions.includes(targetKey)) {
+        targetKey = targetKey.replace(/([A-Z])/g, "-$1").toLowerCase();
+      }
+    }
+
+    if (targetKey === 'style' && value !== null) {
+      const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);
+      const htmlElement = element as HTMLElement | SVGElement;
+      if (descriptor && descriptor.get) {
+        effect(() => {
+          const styleVal = safeProps[key];
+          if (typeof styleVal === 'object') {
+            Object.assign(htmlElement.style, styleVal);
+          } else if (typeof styleVal === 'string') {
+            htmlElement.style.cssText = styleVal;
+          }
+        });
+      } else if (typeof value === 'object') {
+        Object.assign(htmlElement.style, value);
+      }
+    } else {
+      const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);
+      if (descriptor && descriptor.get) {
+        effect(() => {
+          let val = safeProps[key];
+          if (typeof val === 'function') val = val();
+          if (val !== false && val !== null && val !== undefined) {
+            element.setAttribute(targetKey, String(val));
+          }
+        });
+      } else {
+        if (value !== false && value !== null && value !== undefined) {
+          element.setAttribute(targetKey, String(value));
+        }
+      }
+    }
+  });
+
+  const processChildNode = (child: any, parentNamespace: string | null = null) => {
+    if (child === null || child === undefined || child === false) return;
+
+    if (typeof child === 'function') {
+      const anchor = document.createComment('levelo-dynamic');
+      element.appendChild(anchor);
+      let currentNodes: (Element | Text)[] = [];
+
+      effect(() => {
+        const res = child();
+        currentNodes.forEach(n => n.remove());
+        currentNodes = [];
+
+        if (res === null || res === undefined || res === false) return;
+
+        if (res instanceof Element) {
+          anchor.after(res);
+          currentNodes = [res];
+        } else if (Array.isArray(res)) {
+          let lastAnchor: lastAnchorType = anchor;
+          res.forEach(item => {
+            if (item === null || item === undefined || item === false) return;
+            let nodeToInsert: Element | Text;
+            if (item instanceof Element) {
+              nodeToInsert = item;
+            } else {
+              nodeToInsert = document.createTextNode(String(item));
+            }
+            lastAnchor.after(nodeToInsert);
+            lastAnchor = nodeToInsert;
+            currentNodes.push(nodeToInsert);
+          });
+        } else {
+          const t = document.createTextNode(String(res));
+          anchor.after(t);
+          currentNodes = [t];
+        }
+      });
+    } else if (child instanceof Element) {
+      element.appendChild(child);
+    } else if (Array.isArray(child)) {
+      child.forEach(item => {
+        processChildNode(item, parentNamespace);
+      });
+    } else {
+      element.appendChild(document.createTextNode(String(child)));
+    }
+  };
+
+  children.forEach(child => {
+    processChildNode(child, namespace);
+  });
+
+  return element;
+}
+
+// Automatic JSX runtime standard bindings
+export function jsx(tag: TagType, props: Record<string, any> | null): Element {
+  const safeProps = props || {};
+  const { children, ...rest } = safeProps;
+  if (children !== undefined) {
+    return h(tag, rest, ...(Array.isArray(children) ? children : [children]));
+  }
+  return h(tag, safeProps);
+}
+
+export function jsxs(tag: TagType, props: Record<string, any> | null): Element {
+  return jsx(tag, props);
+}
+
+export function Fragment(props: { children?: any }): any {
+  return props.children;
+}

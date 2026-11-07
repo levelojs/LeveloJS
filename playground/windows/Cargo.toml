@@ -1,0 +1,7 @@
+[package]
+name = "windows"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+levelo-windows = { path = "../../packages/levelo-windows" }

@@ -4,8 +4,13 @@ export function App() {
   const [count, setCount] = state(0);
   const [visible, setVisible] = state(true);
 
+  const handleIncrement = () => {
+    console.log("[JSX] Button clicked inside JS! Previous count:", count());
+    setCount(count() + 1);
+  };
+
   return (
-    <main id="root">
+    <main id="root" style={{ background: "#00ff00" }}>
       <header>
         <h1>LeveloJS Native Engine</h1>
         <p>Testing direct Skia rendering & reactivity without Webview or V8.</p>
@@ -13,18 +18,30 @@ export function App() {
 
       <div>শ্রী ক্ষমা বিদ্যালয় যুক্তাক্ষর</div>
 
-      <section id="reactive-test">
+      <section
+        id="reactive-test"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <h2>Counter Test</h2>
-        <p>
-          Current Count: <strong>{count()}</strong>
+        <p style={{ display: "flex", flexDirection: "column" }}>
+          Current Count: <strong><p>{() => count()}</p></strong>
         </p>
 
         <button
           type="button"
-          onClick={() => {
-            setCount(count() + 1);
+          onClick={handleIncrement}
+          style={{
+            background: "#3355dd",
+            width: "100px",
+            height: "50px",
+            color: "#ff0000",
+            borderRadius: "5px",
           }}
-          style={{ background: '#3355dd', width: '100px', height: '50px', color: '#ff0000', borderRadius: '5px' }}
         >
           Increment Counter
         </button>
@@ -38,11 +55,11 @@ export function App() {
             setVisible(!visible());
           }}
         >
-          Toggle Content
+          Toggle Content how did we are in the city
         </button>
 
         <div>
-          {visible() ? <p>Status: Active & Rendering Smoothly</p> : null}
+          {() => (visible() ? <p>Status: Active & Rendering Smoothly</p> : null)}
         </div>
       </section>
     </main>

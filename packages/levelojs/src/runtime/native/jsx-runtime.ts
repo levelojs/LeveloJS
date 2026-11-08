@@ -1,5 +1,6 @@
 // packages/levelojs/src/runtime/native/jsx-runtime.ts
 import { NativeEmitter } from "./emitter.js";
+import { effect } from "../reactivity/reactivity.js";
 
 let nextNodeId = 1;
 
@@ -16,7 +17,7 @@ function render(
     children: any[],
 ): NativeNodeHandle | any {
     if (typeof type === "function") {
-        // Pass a single child as-is, multiple children as an array
+        // Pass single child directly or multiple children as an array
         const childProp =
             children.length === 0 ? undefined : children.length === 1 ? children[0] : children;
         return type({ ...props, children: childProp });
@@ -30,6 +31,7 @@ function render(
         for (const [key, value] of Object.entries(props)) {
             if (value === null || value === undefined || RESERVED_PROPS.has(key)) continue;
 
+            // Event listener registration
             if (key.startsWith("on") && typeof value === "function") {
                 const listenerId = NativeEmitter.registerListener(value);
                 NativeEmitter.emit({
@@ -38,13 +40,41 @@ function render(
                     event: key.slice(2).toLowerCase(),
                     listener_id: listenerId,
                 });
-            } else if (key === "style" && typeof value === "object") {
+            }
+            // Style object handling (static and reactive properties)
+            else if (key === "style" && typeof value === "object") {
                 for (const [sKey, sVal] of Object.entries(value)) {
-                    if (sVal !== null && sVal !== undefined) {
+                    if (sVal === null || sVal === undefined) continue;
+
+                    if (typeof sVal === "function") {
+                        effect(() => {
+                            const resolvedVal = (sVal as Function)();
+                            NativeEmitter.emit({
+                                op: "SetStyle",
+                                node: id,
+                                name: sKey,
+                                value: String(resolvedVal ?? ""),
+                            });
+                        });
+                    } else {
                         NativeEmitter.emit({ op: "SetStyle", node: id, name: sKey, value: String(sVal) });
                     }
                 }
-            } else if (typeof value !== "function") {
+            }
+            // Reactive prop/style function binding
+            else if (typeof value === "function") {
+                effect(() => {
+                    const resolvedVal = (value as Function)();
+                    NativeEmitter.emit({
+                        op: "SetStyle",
+                        node: id,
+                        name: key,
+                        value: String(resolvedVal ?? ""),
+                    });
+                });
+            }
+            // Static property binding
+            else {
                 NativeEmitter.emit({ op: "SetStyle", node: id, name: key, value: String(value) });
             }
         }
@@ -53,11 +83,29 @@ function render(
     for (const child of children.flat(Infinity)) {
         if (child === null || child === undefined || child === false || child === "") continue;
 
-        if (typeof child === "string" || typeof child === "number") {
+        // Reactive text node driven by signal/getter function
+        if (typeof child === "function") {
+            const textNodeId = nextNodeId++;
+            NativeEmitter.emit({ op: "CreateText", node: textNodeId, text: "" });
+            NativeEmitter.emit({ op: "AppendChild", parent: id, child: textNodeId });
+
+            effect(() => {
+                const resolvedText = (child as Function)();
+                NativeEmitter.emit({
+                    op: "SetText",
+                    node: textNodeId,
+                    text: String(resolvedText ?? ""),
+                });
+            });
+        }
+        // Static string or numeric text child
+        else if (typeof child === "string" || typeof child === "number") {
             const textNodeId = nextNodeId++;
             NativeEmitter.emit({ op: "CreateText", node: textNodeId, text: String(child) });
             NativeEmitter.emit({ op: "AppendChild", parent: id, child: textNodeId });
-        } else if (typeof child === "object" && "id" in child) {
+        }
+        // Nested DOM/Native node handle
+        else if (typeof child === "object" && "id" in child) {
             NativeEmitter.emit({ op: "AppendChild", parent: id, child: (child as NativeNodeHandle).id });
         }
     }
@@ -77,5 +125,5 @@ export function h(type: string | Function, props: Record<string, any> | null, ..
     return render(type, props, children);
 }
 
-// Needed if you ever use <>...</> fragments
+// Fragment component support
 export const Fragment = (props: { children?: any }) => props.children;

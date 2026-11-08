@@ -29,7 +29,7 @@ export function App() {
       >
         <h2>Counter Test</h2>
         <p style={{ display: "flex", flexDirection: "column" }}>
-          Current Count: <strong><p>{() => count()}</p></strong>
+          Current Count: <strong><p>{count()}</p></strong>
         </p>
 
         <button
@@ -59,7 +59,7 @@ export function App() {
         </button>
 
         <div>
-          {() => (visible() ? <p>Status: Active & Rendering Smoothly</p> : null)}
+          {(visible() ? <p>Status: Active & Rendering Smoothly</p> : null)}
         </div>
       </section>
     </main>

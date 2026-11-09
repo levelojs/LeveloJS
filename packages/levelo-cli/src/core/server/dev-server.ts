@@ -7,6 +7,11 @@ import pc from "picocolors";
 import { WebSocketServer, WebSocket } from "ws";
 import { leveloWebPlugin } from "../plugins/web-plugin.js";
 
+// LeveloJS Violet theme brand color (#7C6BF6)
+const brandColor = (str: string) => `\x1b[38;2;124;107;246m${str}\x1b[0m`;
+const brandBadge = (str: string) => `\x1b[48;2;124;107;246m\x1b[30m\x1b[1m ${str} \x1b[0m`;
+const brandTag = brandColor("[LEVELOJS]");
+
 interface DevServerOptions {
     cwd?: string;
     port?: number;
@@ -48,32 +53,96 @@ const WS_CLIENT_SCRIPT = `
 </script>
 `;
 
+// =========================================================
+// Config Loader & Virtual HTML Generator
+// =========================================================
+async function getFreshAppConfig(rootDir: string) {
+    const tsConfig = path.join(rootDir, "app.config.ts");
+    const jsConfig = path.join(rootDir, "app.config.js");
+    const configPath = fsSync.existsSync(tsConfig) ? tsConfig : jsConfig;
+    if (!fsSync.existsSync(configPath)) {
+        return { name: "LeveloJS App", web: { title: "LeveloJS App" } };
+    }
+
+    try {
+        const result = await esbuild.build({
+            entryPoints: [configPath],
+            bundle: true,
+            write: false,
+            format: "esm",
+            platform: "node",
+            packages: "external",
+        });
+        const code = result.outputFiles[0].text;
+        const base64 = Buffer.from(code).toString("base64");
+        const module = await import(`data:text/javascript;base64,${base64}`);
+        return module.default || module;
+    } catch (err: any) {
+        console.error(pc.red(`[Levelo Config Error]: ${err.message}`));
+        return { name: "LeveloJS App", web: { title: "LeveloJS App" } };
+    }
+}
+
+function generateVirtualHtml(config: any): string {
+    const web = config.web || {};
+    const title = web.title || config.name || "LeveloJS App";
+    const lang = web.lang || "en";
+    const icon = config.icon ? `<link rel="icon" href="${config.icon}" />` : "";
+
+    const metaTags = (web.meta || [])
+        .map((m: any) => {
+            if (m.name) return `<meta name="${m.name}" content="${m.content}" />`;
+            if (m.property) return `<meta property="${m.property}" content="${m.content}" />`;
+            return "";
+        })
+        .filter(Boolean)
+        .join("\n    ");
+
+    const linkTags = (web.links || [])
+        .map((l: any) => `<link rel="${l.rel}" href="${l.href}" ${l.type ? `type="${l.type}"` : ""} />`)
+        .join("\n    ");
+
+    return `<!doctype html>
+<html lang="${lang}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    ${icon}
+    <title>${title}</title>
+    ${metaTags}
+    ${linkTags}
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    ${WS_CLIENT_SCRIPT}
+  </body>
+</html>`;
+}
+
+// =========================================================
+// Dev Server Implementation
+// =========================================================
 export async function startDevServer(options: DevServerOptions = {}) {
+    const startTime = performance.now();
     const rootDir = options.cwd || process.cwd();
     const port = options.port || 6262;
 
     const server = http.createServer(async (req, res) => {
         let reqPath = (req.url || "/").split("?")[0];
 
-        // 1. Serve index.html on root request
+        // Serve Virtual HTML on root request (Zero-HTML Architecture)
         if (reqPath === "/" || reqPath === "/index.html") {
             try {
-                const htmlPath = path.join(rootDir, "index.html");
-                let html = await fs.readFile(htmlPath, "utf-8");
-
-                // Automatically inject the WS client script before closing tag
-                if (html.includes("</body>")) {
-                    html = html.replace("</body>", `${WS_CLIENT_SCRIPT}</body>`);
-                } else {
-                    html += WS_CLIENT_SCRIPT;
-                }
+                const config = await getFreshAppConfig(rootDir);
+                const html = generateVirtualHtml(config);
 
                 res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
                 res.end(html);
                 return;
-            } catch {
-                res.writeHead(404, { "Content-Type": "text/plain" });
-                res.end("index.html not found in project root.");
+            } catch (err: any) {
+                res.writeHead(500, { "Content-Type": "text/plain" });
+                res.end(`Internal Server Error: ${err.message}`);
                 return;
             }
         }
@@ -89,6 +158,7 @@ export async function startDevServer(options: DevServerOptions = {}) {
                     bundle: true,
                     write: false,
                     format: "esm",
+                    platform: 'browser',
                     target: "es2022",
                     sourcemap: "inline",
                     plugins: [leveloWebPlugin()],
@@ -99,7 +169,7 @@ export async function startDevServer(options: DevServerOptions = {}) {
                 res.end(outputCode);
                 return;
             } catch (err: any) {
-                console.error(pc.red(`[Levelo Bundler Error]: ${err.message}`));
+                console.error(pc.red(`${brandTag} Bundler Error: ${err.message}`));
                 res.writeHead(500, { "Content-Type": "text/plain" });
                 res.end(err.message);
                 return;
@@ -146,26 +216,53 @@ export async function startDevServer(options: DevServerOptions = {}) {
     }
 
     // Watch source directory with debounce
+    // Watch source directory & app.config.ts with debounce
     let debounceTimer: NodeJS.Timeout | null = null;
-    const watchTarget = path.join(rootDir, 'src');
+    const triggerReload = (filename: string) => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const currentTime = new Date().toLocaleTimeString();
+            console.log(`${pc.dim(currentTime)} ${brandTag} Changed: ${pc.green(filename)} -> reloading browser...`);
+            broadcastReload();
+        }, 100);
+    };
 
+    // Watch src/
+    const watchTarget = path.join(rootDir, "src");
+    let srcWatcher: fsSync.FSWatcher | null = null;
     if (fsSync.existsSync(watchTarget)) {
-        const watcher = fsSync.watch(watchTarget, {recursive: true}, (_event, filename) => {
-            if (!filename) return;
-            if (debounceTimer) clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                console.log(pc.yellow(`[Levelo] Changed: src/${filename} -> reloading browser...`));
-                broadcastReload();
-            }, 100);
+        srcWatcher = fsSync.watch(watchTarget, { recursive: true }, (_event, filename) => {
+            if (filename) triggerReload(`src/${filename}`);
         });
-
-        server.on("close", () => watcher.close());
     }
 
+    // Watch app.config.ts
+    const configTarget = fsSync.existsSync(path.join(rootDir, "app.config.ts"))
+        ? path.join(rootDir, "app.config.ts")
+        : path.join(rootDir, "app.config.js");
+    let configWatcher: fsSync.FSWatcher | null = null;
+    if (fsSync.existsSync(configTarget)) {
+        configWatcher = fsSync.watch(configTarget, () => {
+            triggerReload(path.basename(configTarget));
+        });
+    }
+
+    server.on("close", () => {
+        srcWatcher?.close();
+        configWatcher?.close();
+    });
+
     server.listen(port, () => {
-        console.log(pc.green(`\n✔ LeveloJS Web Server ready!`));
-        console.log(pc.cyan(`  ➜ Local: `) + pc.green(`http://localhost:${port}/`));
-        console.log(pc.gray(`  ➜ Root:  `) + pc.white(rootDir) + `\n`);
+        const startupDuration = Math.round(performance.now() - startTime);
+        console.log();
+        console.log(
+            `  ${brandBadge("LEVELOJS")} ${pc.dim("ready in")} ${pc.reset(`${startupDuration} ms`)}`
+        );
+        console.log();
+        console.log(`  ${pc.green("➜")}  ${pc.bold("Local:")}   ${pc.cyan(`http://localhost:${port}/`)}`);
+        console.log(`  ${pc.green("➜")}  ${pc.dim("Network:")} ${pc.dim(`use ${pc.bold("--host")} to expose`)}`);
+        console.log(`  ${pc.green("➜")}  ${pc.dim("Root:")}    ${pc.bold(rootDir)}`);
+        console.log();
     });
 
     return { server, wss };

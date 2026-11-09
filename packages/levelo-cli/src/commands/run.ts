@@ -13,13 +13,13 @@ export async function runCommand(options: RunOptions): Promise<void> {
     const projectRoot = process.cwd();
 
     if (device === "web") {
-        console.log(pc.cyan(`\n⚡ Starting LeveloJS Web Engine...\n`));
+        console.log(pc.bold(`\n⚡ Starting LeveloJS Web Engine...\n`));
         await startDevServer({
             cwd: projectRoot,
             port: Number(port)
         });
     } else {
-        console.log(pc.cyan(`\n⚡ Starting LeveloJS Native Engine for ${device}...\n`));
+        console.log(pc.bold(`\n⚡ Starting LeveloJS Native Engine for ${device}...\n`));
         console.log(pc.yellow(`⚠ ${device} native pipeline integration is coming up next!`));
     }
 }

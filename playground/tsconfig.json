@@ -3,6 +3,11 @@
     "jsx": "react",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "levelojs": [
+        "../packages/levelojs/src/index.ts"
+      ]
+    }
   }
 }

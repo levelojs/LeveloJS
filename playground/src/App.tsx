@@ -12,7 +12,7 @@ export function App() {
   return (
     <main id="root" style={{ background: "#00ff00" }}>
       <header>
-        <h1>LeveloJS Native Engine</h1>
+        <h1>LeveloJS Native Engine and Web Engine</h1>
         <p>Testing direct Skia rendering & reactivity without Webview or V8.</p>
       </header>
 

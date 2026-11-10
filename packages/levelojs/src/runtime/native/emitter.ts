@@ -1,12 +1,5 @@
 // packages/levelojs/src/runtime/native/emitter.ts
-
-export type NativeCommand =
-    | { op: "CreateElement"; node: number; element_type: string }
-    | { op: "CreateText"; node: number; text: string }
-    | { op: "AppendChild"; parent: number; child: number }
-    | { op: "SetStyle"; node: number; name: string; value: string }
-    | { op: "SetText"; node: number; text: string }
-    | { op: "AddEventListener"; node: number; event: string; listener_id: number };
+import { NativeCommand } from "./types.js";
 
 export class NativeEmitter {
     private static buffer: NativeCommand[] = [];
@@ -18,24 +11,63 @@ export class NativeEmitter {
 
         // Direct in-memory FFI transmission to Rust host (Zero JSON overhead)
         if (typeof (globalThis as any).__native_emit_op === "function") {
+            const emit = (globalThis as any).__native_emit_op;
             switch (cmd.op) {
+                // Lifecycle
                 case "CreateElement":
-                    (globalThis as any).__native_emit_op(1, cmd.node, cmd.element_type, 0, "");
+                    emit(cmd.opcode, cmd.node, cmd.element_type, 0, "");
                     break;
                 case "CreateText":
-                    (globalThis as any).__native_emit_op(2, cmd.node, cmd.text, 0, "");
+                    emit(cmd.opcode, cmd.node, cmd.text, 0, "");
                     break;
+                case "DeleteNode":
+                    emit(cmd.opcode, cmd.node, "", 0, "");
+                    break;
+
+                // Hierarchy & Mutations
                 case "AppendChild":
-                    (globalThis as any).__native_emit_op(3, cmd.parent, "", cmd.child, "");
+                    emit(cmd.opcode, cmd.parent, "", cmd.child, "");
                     break;
+                case "InsertBefore":
+                    emit(cmd.opcode, cmd.parent, "", cmd.child, String(cmd.reference));
+                    break;
+                case "ReplaceChild":
+                    emit(cmd.opcode, cmd.parent, "", cmd.new_child, String(cmd.old_child));
+                    break;
+                case "RemoveChild":
+                    emit(cmd.opcode, cmd.parent, "", cmd.child, "");
+                    break;
+
+                // Properties & Attributes
+                case "SetProperty":
+                    emit(cmd.opcode, cmd.node, cmd.name, 0, String(cmd.value));
+                    break;
+
+                case "RemoveProperty":
+                    emit(cmd.opcode, cmd.node, cmd.name, 0, "");
+                    break;
+
+                // Style
                 case "SetStyle":
-                    (globalThis as any).__native_emit_op(4, cmd.node, cmd.name, 0, cmd.value);
+                    emit(cmd.opcode, cmd.node, cmd.name, 0, cmd.value);
                     break;
+
+                case "RemoveStyle":
+                    emit(cmd.opcode, cmd.node, cmd.name, 0, "");
+                    break;
+
+                // Text Content
                 case "SetText":
-                    (globalThis as any).__native_emit_op(5, cmd.node, cmd.text, 0, "");
+                    emit(cmd.opcode, cmd.node, cmd.text, 0, "");
                     break;
+
+                // Events & Listeners
                 case "AddEventListener":
-                    (globalThis as any).__native_emit_op(6, cmd.node, cmd.event, cmd.listener_id, "");
+                    emit(cmd.opcode, cmd.node, cmd.event, cmd.listener_id, "");
+                    break;
+
+                case "RemoveEventListener":
+                    emit(cmd.opcode, cmd.node, cmd.event, cmd.listener_id, "");
                     break;
             }
         }
@@ -50,6 +82,13 @@ export class NativeEmitter {
             (globalThis as any).__registerNativeListener(id, fn);
         }
         return id;
+    }
+
+    static removeListener(id: number): void {
+        this.listeners.delete(id);
+        if (typeof (globalThis as any).__removeNativeListener === "function") {
+            (globalThis as any).__removeNativeListener(id);
+        }
     }
 
     static getBatch(): NativeCommand[] {

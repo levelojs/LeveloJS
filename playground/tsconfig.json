@@ -4,10 +4,5 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "noEmit": true,
-    "paths": {
-      "levelojs": [
-        "../packages/levelojs/src/index.ts"
-      ]
-    }
   }
 }

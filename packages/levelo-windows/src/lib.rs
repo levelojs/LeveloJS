@@ -250,7 +250,7 @@ pub fn run_engine(title: &str, width: i32, height: i32) -> Result<()> {
 
         if !loaded {
             eprintln!("[Levelo Engine] Warning: bundle.js not found! Fallback to initial mock batch.");
-            let fallback = command::get_initial_operation_batch();
+            let fallback = command::get_initial_operation_batch(Some("bundle.js not found in target directories."));
             sync_event_listeners(&fallback);
             *SCENE_BATCH.get_mut() = Some(fallback);
         } else {

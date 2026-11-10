@@ -14,27 +14,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "native": "./dist/native.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "default": "./dist/index.js"
-    },
-    "./jsx-runtime": {
-      "types": "./dist/jsx-runtime.d.ts",
-      "import": "./dist/jsx-runtime.js",
-      "require": "./dist/jsx-runtime.cjs",
-      "default": "./dist/jsx-runtime.js"
-    },
-    "./native/jsx-runtime": {
-      "types": "./dist/native/jsx-runtime.d.ts",
-      "import": "./dist/native/jsx-runtime.js",
-      "require": "./dist/native/jsx-runtime.cjs",
-      "default": "./dist/native/jsx-runtime.js"
-    },
-    "./native/emitter": {
-      "types": "./dist/native/emitter.d.ts",
-      "import": "./dist/native/emitter.js",
-      "require": "./dist/native/emitter.cjs",
-      "default": "./dist/native/emitter.js"
     },
     "./package.json": "./package.json"
   },

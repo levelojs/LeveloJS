@@ -5,9 +5,14 @@ export function App() {
   const [visible, setVisible] = state(true);
 
   const handleIncrement = () => {
-    console.log("[JSX] Button clicked inside JS! Previous count:", count());
     setCount(count() + 1);
+    console.log("[JSX] Button clicked inside JS! Count:", count());
   };
+
+  const handleDynamicCondition = () => {
+    setVisible(!visible());
+    console.log("[JSX] Button clicked for dynamic UI, vissible:", visible());
+  }
 
   return (
     <main id="root" style={{ background: "#00ff00" }}>
@@ -17,6 +22,8 @@ export function App() {
       </header>
 
       <div>শ্রী ক্ষমা বিদ্যালয় যুক্তাক্ষর</div>
+
+      <p>😍🖐👍</p>
 
       <section
         id="reactive-test"
@@ -51,9 +58,7 @@ export function App() {
         <h2>Dynamic Condition</h2>
         <button
           type="button"
-          onClick={() => {
-            setVisible(!visible());
-          }}
+          onClick={handleDynamicCondition}
         >
           Toggle Content how did we are in the city
         </button>

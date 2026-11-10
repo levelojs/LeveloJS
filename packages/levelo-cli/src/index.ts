@@ -1,25 +1,40 @@
 import cac from "cac";
 import pc from "picocolors"
-import { runCommand } from "./commands/run.js";
+import { runDevCommand, runBuildCommand } from "./commands/run.js";
 
 const cli = cac("levelo");
 
 cli
-    .command("run", "Run LeveloJS application on target device")
-    .option("-d, --device <device>", "Target platform (web | windows | android)", {
-        default: "web"
-    })
-    .option("-p, --port <port>", "Web dev server port", {
-        default: 6262,
-    })
-    .action(async (options) => {
-        try {
-            await runCommand(options)
-        } catch (err: any) {
-            console.error(pc.red(`\n[Levelo CLI Error]: ${err.message}\n`));
-            process.exit(1);
-        }
-    });
+  .command("dev", "Start development runtime for specified platform")
+  .option("-p, --platform <platform>", "Target platform (web | windows | android)", {
+    default: "web",
+  })
+  .option("--port <port>", "Web dev server port", {
+    default: 6262,
+  })
+  .action(async (options) => {
+    try {
+      await runDevCommand(options);
+    } catch (err: any) {
+      console.error(pc.red(`\n[Levelo CLI Error]: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+
+cli
+  .command("build", "Build standalone bundle for specified platform")
+  .option("-p, --platform <platform>", "Target platform (web | windows)", {
+    default: "web",
+  })
+  .action(async (options) => {
+    try {
+      await runBuildCommand(options);
+    } catch (err: any) {
+      console.error(pc.red(`\n[Levelo CLI Error]: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
 
 cli.help();
 cli.version("0.1.0");

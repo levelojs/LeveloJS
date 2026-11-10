@@ -1,10 +1,7 @@
 // packages/levelo-windows/src/command.rs
-
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::path::Path;
-use skia_safe::Color;
 use crate::style::UiNode;
+use skia_safe::Color;
+use std::collections::{HashMap, HashSet};
 
 /// Represents a unique DOM node ID matching levelo-core
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -24,23 +21,24 @@ pub enum Value {
     Bool(bool),
 }
 
-/// Operation classification matching levelo-core
+/// Operation classification matching NativeOpCode in levelojs (1 to 14)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
 pub enum OperationType {
-    CreateElement,
-    CreateText,
-    AppendChild,
-    InsertBefore,
-    ReplaceChild,
-    RemoveChild,
-    DeleteNode,
-    SetProperty,
-    RemoveProperty,
-    SetStyle,
-    RemoveStyle,
-    SetText,
-    AddEventListener,
-    RemoveEventListener,
+    CreateElement = 1,
+    CreateText = 2,
+    AppendChild = 3,
+    InsertBefore = 4,
+    ReplaceChild = 5,
+    RemoveChild = 6,
+    DeleteNode = 7,
+    SetProperty = 8,
+    RemoveProperty = 9,
+    SetStyle = 10,
+    RemoveStyle = 11,
+    SetText = 12,
+    AddEventListener = 13,
+    RemoveEventListener = 14,
 }
 
 /// Exact operations dispatched from levelo-core
@@ -53,6 +51,9 @@ pub enum Operation {
     CreateText {
         node: NodeId,
         text: String,
+    },
+    DeleteNode {
+        node: NodeId,
     },
     AppendChild {
         parent: NodeId,
@@ -71,9 +72,6 @@ pub enum Operation {
     RemoveChild {
         parent: NodeId,
         child: NodeId,
-    },
-    DeleteNode {
-        node: NodeId,
     },
     SetProperty {
         node: NodeId,
@@ -114,11 +112,11 @@ impl Operation {
         match self {
             Self::CreateElement { .. } => OperationType::CreateElement,
             Self::CreateText { .. } => OperationType::CreateText,
+            Self::DeleteNode { .. } => OperationType::DeleteNode,
             Self::AppendChild { .. } => OperationType::AppendChild,
             Self::InsertBefore { .. } => OperationType::InsertBefore,
             Self::ReplaceChild { .. } => OperationType::ReplaceChild,
             Self::RemoveChild { .. } => OperationType::RemoveChild,
-            Self::DeleteNode { .. } => OperationType::DeleteNode,
             Self::SetProperty { .. } => OperationType::SetProperty,
             Self::RemoveProperty { .. } => OperationType::RemoveProperty,
             Self::SetStyle { .. } => OperationType::SetStyle,
@@ -181,98 +179,6 @@ impl IntoIterator for OperationBatch {
     }
 }
 
-/// Initial mock operations mimicking levelo-core renderer output
-pub fn get_initial_operation_batch() -> OperationBatch {
-    let mut batch = OperationBatch::new();
-
-    batch.push(Operation::CreateText {
-        node: NodeId::new(1),
-        text: "Levelo Skia Canvas Test from Siam, Do you ready?".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(1),
-        name: "x".to_string(),
-        value: "50".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(1),
-        name: "y".to_string(),
-        value: "50".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(1),
-        name: "font-size".to_string(),
-        value: "22".to_string(),
-    });
-
-    batch.push(Operation::CreateElement {
-        node: NodeId::new(101),
-        element_type: "button".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "x".to_string(),
-        value: "50".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "y".to_string(),
-        value: "90".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "width".to_string(),
-        value: "150".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "height".to_string(),
-        value: "44".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "border-radius".to_string(),
-        value: "8".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(101),
-        name: "background".to_string(),
-        value: "#0d6efd".to_string(),
-    });
-
-    batch.push(Operation::CreateText {
-        node: NodeId::new(102),
-        text: "Click Here".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(102),
-        name: "x".to_string(),
-        value: "85".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(102),
-        name: "y".to_string(),
-        value: "103".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(102),
-        name: "font-size".to_string(),
-        value: "15".to_string(),
-    });
-    batch.push(Operation::SetStyle {
-        node: NodeId::new(102),
-        name: "color".to_string(),
-        value: "#ffffff".to_string(),
-    });
-
-    batch.push(Operation::AppendChild {
-        parent: NodeId::new(101),
-        child: NodeId::new(102),
-    });
-
-    batch
-}
-
 /// Parses a numeric style value, accepting an optional "px" suffix ("20" or "20px")
 fn parse_px(value: &str) -> Option<f32> {
     value
@@ -294,13 +200,14 @@ fn parse_color(input: &str) -> Color {
         "green" => return Color::GREEN,
         "blue" => return Color::BLUE,
         "gray" | "grey" => return Color::GRAY,
+        "yellow" => return Color::YELLOW,
+        "cyan" | "aqua" => return Color::CYAN,
+        "magenta" | "fuchsia" => return Color::MAGENTA,
         "transparent" => return Color::TRANSPARENT,
         _ => {}
     }
 
     let clean = value.trim_start_matches('#');
-
-    // Expand shorthand "#abc" into "#aabbcc"
     let expanded: String = if clean.len() == 3 {
         clean.chars().flat_map(|c| [c, c]).collect()
     } else {
@@ -360,6 +267,72 @@ fn collect_in_paint_order(
     }
 }
 
+/// Dynamic fallback / error overlay screen
+pub fn get_initial_operation_batch(error_msg: Option<&str>) -> OperationBatch {
+    let mut batch = OperationBatch::new();
+
+    let message = error_msg.unwrap_or("Waiting for LeveloJS Native Bundle...");
+
+    // Background Card
+    batch.push(Operation::CreateElement {
+        node: NodeId::new(990),
+        element_type: "div".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(990),
+        name: "x".to_string(),
+        value: "30".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(990),
+        name: "y".to_string(),
+        value: "30".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(990),
+        name: "background".to_string(),
+        value: "#1e1e2e".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(990),
+        name: "border-radius".to_string(),
+        value: "8".to_string(),
+    });
+
+    // Error / Status Text
+    batch.push(Operation::CreateText {
+        node: NodeId::new(991),
+        text: format!("[Levelo Engine Error]: {}", message),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(991),
+        name: "x".to_string(),
+        value: "45".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(991),
+        name: "y".to_string(),
+        value: "50".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(991),
+        name: "font-size".to_string(),
+        value: "16".to_string(),
+    });
+    batch.push(Operation::SetStyle {
+        node: NodeId::new(991),
+        name: "color".to_string(),
+        value: "#ff5555".to_string(),
+    });
+
+    batch.push(Operation::AppendChild {
+        parent: NodeId::new(990),
+        child: NodeId::new(991),
+    });
+
+    batch
+}
+
 /// Constructs a unified UiNode scene tree from raw operation batch
 pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
     let mut nodes: HashMap<u64, UiNode> = HashMap::new();
@@ -377,14 +350,54 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                 nodes.insert(node.0, ui_node);
                 render_order.push(node.0);
             }
+            Operation::DeleteNode { node } => {
+                nodes.remove(&node.0);
+                render_order.retain(|&id| id != node.0);
+            }
             Operation::AppendChild { parent, child } => {
                 if let Some(parent_node) = nodes.get_mut(&parent.0) {
+                    parent_node.children.retain(|&c| c != child.0);
                     parent_node.children.push(child.0);
+                }
+            }
+            Operation::InsertBefore { parent, child, reference } => {
+                if let Some(parent_node) = nodes.get_mut(&parent.0) {
+                    parent_node.children.retain(|&c| c != child.0);
+                    if let Some(pos) = parent_node.children.iter().position(|&c| c == reference.0) {
+                        parent_node.children.insert(pos, child.0);
+                    } else {
+                        parent_node.children.push(child.0);
+                    }
+                }
+            }
+            Operation::ReplaceChild { parent, new_child, old_child } => {
+                if let Some(parent_node) = nodes.get_mut(&parent.0) {
+                    if let Some(pos) = parent_node.children.iter().position(|&c| c == old_child.0) {
+                        parent_node.children[pos] = new_child.0;
+                    } else {
+                        parent_node.children.push(new_child.0);
+                    }
+                }
+            }
+            Operation::RemoveChild { parent, child } => {
+                if let Some(parent_node) = nodes.get_mut(&parent.0) {
+                    parent_node.children.retain(|&c| c != child.0);
                 }
             }
             Operation::SetText { node, text } => {
                 if let Some(target) = nodes.get_mut(&node.0) {
                     target.text_content = Some(text.clone());
+                }
+            }
+            Operation::SetProperty { node, name, value } => {
+                if let Some(target) = nodes.get_mut(&node.0) {
+                    // For example: target.attributes.insert(name.clone(), value.clone());
+                    let _ = (target, name, value);
+                }
+            }
+            Operation::RemoveProperty { node, name } => {
+                if let Some(target) = nodes.get_mut(&node.0) {
+                    let _ = (target, name);
                 }
             }
             Operation::SetStyle { node, name, value } => {
@@ -410,144 +423,35 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                     }
                 }
             }
-            _ => {}
+            Operation::RemoveStyle { node, name } => {
+                if let Some(target) = nodes.get_mut(&node.0) {
+                    match name.as_str() {
+                        "background" | "background-color" => target.style.background_color = None,
+                        "color" => target.style.color = None,
+                        _ => {}
+                    }
+                }
+            }
+            Operation::AddEventListener { .. } | Operation::RemoveEventListener { .. } => {}
         }
     }
 
-    // Roots are nodes that never appear as a child of another node.
-    // JSX evaluates children before parents, so creation order is not paint order.
     let child_ids: HashSet<u64> = nodes
         .values()
         .flat_map(|n| n.children.iter().copied())
         .collect();
 
     let mut result = Vec::with_capacity(nodes.len());
-
+    
     for id in &render_order {
         if !child_ids.contains(id) {
             collect_in_paint_order(*id, &mut nodes, &mut result, None, None);
         }
     }
 
-    // Safety net: nodes whose parent was never created still get painted
     for id in &render_order {
         collect_in_paint_order(*id, &mut nodes, &mut result, None, None);
     }
 
     result
-}
-
-/// Reads raw `.bin` payload and reconstructs the universal OperationBatch
-pub fn decode_binary_file<P: AsRef<Path>>(path: P) -> std::io::Result<OperationBatch> {
-    let bytes = fs::read(path)?;
-    let mut batch = OperationBatch::new();
-    let mut offset = 0;
-
-    while offset < bytes.len() {
-        let opcode = bytes[offset];
-        offset += 1;
-
-        match opcode {
-            0x01 => {
-                if offset + 10 > bytes.len() { break; }
-                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
-                offset += 2;
-                if offset + len > bytes.len() { break; }
-                let tag = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
-                offset += len;
-
-                batch.push(Operation::CreateElement {
-                    node: NodeId::new(node),
-                    element_type: tag,
-                });
-            }
-            0x02 => {
-                if offset + 10 > bytes.len() { break; }
-                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
-                offset += 2;
-                if offset + len > bytes.len() { break; }
-                let text = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
-                offset += len;
-
-                batch.push(Operation::CreateText {
-                    node: NodeId::new(node),
-                    text,
-                });
-            }
-            0x03 => {
-                if offset + 16 > bytes.len() { break; }
-                let parent = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-                let child = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-
-                batch.push(Operation::AppendChild {
-                    parent: NodeId::new(parent),
-                    child: NodeId::new(child),
-                });
-            }
-            0x04 => {
-                if offset + 11 > bytes.len() { break; }
-                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-                let key_id = bytes[offset];
-                offset += 1;
-                let len = u16::from_le_bytes(bytes[offset..offset + 2].try_into().unwrap()) as usize;
-                offset += 2;
-                if offset + len > bytes.len() { break; }
-                let val = String::from_utf8_lossy(&bytes[offset..offset + len]).to_string();
-                offset += len;
-
-                let key_name = match key_id {
-                    1 => "x",
-                    2 => "y",
-                    3 => "width",
-                    4 => "height",
-                    5 => "font-size",
-                    6 => "border-radius",
-                    7 => "border-width",
-                    8 => "background",
-                    9 => "color",
-                    10 => "border-color",
-                    _ => continue,
-                };
-
-                batch.push(Operation::SetStyle {
-                    node: NodeId::new(node),
-                    name: key_name.to_string(),
-                    value: val,
-                });
-            }
-            0x05 => {
-                if offset + 17 > bytes.len() { break; }
-                let node = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-                let event_id = bytes[offset];
-                offset += 1;
-                let listener_id = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-
-                let event_name = match event_id {
-                    1 => "click",
-                    2 => "mousedown",
-                    3 => "mouseup",
-                    4 => "input",
-                    _ => "unknown",
-                };
-
-                batch.push(Operation::AddEventListener {
-                    node: NodeId::new(node),
-                    event: event_name.to_string(),
-                    listener_id,
-                });
-            }
-            _ => break,
-        }
-    }
-
-    Ok(batch)
 }

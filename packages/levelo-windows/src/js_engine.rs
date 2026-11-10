@@ -115,28 +115,81 @@ impl JsEngine {
                             let node_id = NodeId::new(node as u64);
 
                             match op_code {
+                                // 1: CreateElement
                                 1 => lock.push(Operation::CreateElement {
                                     node: node_id,
                                     element_type: s1,
                                 }),
+                                // 2: CreateText
                                 2 => lock.push(Operation::CreateText {
                                     node: node_id,
                                     text: s1,
                                 }),
+                                // 3: AppendChild
                                 3 => lock.push(Operation::AppendChild {
                                     parent: node_id,
                                     child: NodeId::new(n2 as u64),
                                 }),
-                                4 => lock.push(Operation::SetStyle {
+                                // 4: InsertBefore (s2 contains reference NodeId)
+                                4 => {
+                                    let reference_id = s2.parse::<u64>().unwrap_or(0);
+                                    lock.push(Operation::InsertBefore {
+                                        parent: node_id,
+                                        child: NodeId::new(n2 as u64),
+                                        reference: NodeId::new(reference_id),
+                                    });
+                                }
+                                // 5: ReplaceChild (n2 is new_child, s2 contains old_child)
+                                5 => {
+                                    let old_id = s2.parse::<u64>().unwrap_or(0);
+                                    lock.push(Operation::ReplaceChild {
+                                        parent: node_id,
+                                        new_child: NodeId::new(n2 as u64),
+                                        old_child: NodeId::new(old_id),
+                                    });
+                                }
+                                // 6: RemoveChild
+                                6 => lock.push(Operation::RemoveChild {
+                                    parent: node_id,
+                                    child: NodeId::new(n2 as u64),
+                                }),
+                                // 7: DeleteNode
+                                7 => lock.push(Operation::DeleteNode { node: node_id }),
+                                // 8: SetProperty (s1: name, s2: value)
+                                8 => lock.push(Operation::SetProperty {
+                                    node: node_id,
+                                    name: s1,
+                                    value: crate::command::Value::String(s2),
+                                }),
+                                // 9: RemoveProperty
+                                9 => lock.push(Operation::RemoveProperty {
+                                    node: node_id,
+                                    name: s1,
+                                }),
+                                // 10: SetStyle (s1: name, s2: value)
+                                10 => lock.push(Operation::SetStyle {
                                     node: node_id,
                                     name: s1,
                                     value: s2,
                                 }),
-                                5 => lock.push(Operation::SetText {
+                                // 11: RemoveStyle
+                                11 => lock.push(Operation::RemoveStyle {
+                                    node: node_id,
+                                    name: s1,
+                                }),
+                                // 12: SetText
+                                12 => lock.push(Operation::SetText {
                                     node: node_id,
                                     text: s1,
                                 }),
-                                6 => lock.push(Operation::AddEventListener {
+                                // 13: AddEventListener
+                                13 => lock.push(Operation::AddEventListener {
+                                    node: node_id,
+                                    event: s1,
+                                    listener_id: n2 as u64,
+                                }),
+                                // 14: RemoveEventListener
+                                14 => lock.push(Operation::RemoveEventListener {
                                     node: node_id,
                                     event: s1,
                                     listener_id: n2 as u64,

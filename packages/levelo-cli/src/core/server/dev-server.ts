@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import fsSync from "node:fs";
 import esbuild from "esbuild";
 import pc from "picocolors";
@@ -71,7 +72,6 @@ async function getFreshAppConfig(rootDir: string) {
             write: false,
             format: "esm",
             platform: "node",
-            packages: "external",
         });
         const code = result.outputFiles[0].text;
         const base64 = Buffer.from(code).toString("base64");

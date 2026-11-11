@@ -1,22 +1,13 @@
 // packages/levelo-windows/src/canvas.rs
 
 use crate::layout::LayoutBox;
-use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextStyle};
-use skia_safe::{
-    surfaces, Color, FontMgr, Paint, PaintStyle, Point, RRect, Rect,
-};
+use crate::text;
+use skia_safe::{Color, Paint, PaintStyle, Point, RRect, Rect, surfaces};
 
-pub struct SkiaRenderer {
-    font_collection: FontCollection,
-}
-
+pub struct SkiaRenderer;
 impl SkiaRenderer {
     pub fn new() -> Self {
-        let font_mgr = FontMgr::new();
-        let mut font_collection = FontCollection::new();
-        font_collection.set_default_font_manager(font_mgr, None);
-
-        Self { font_collection }
+        Self
     }
 
     pub fn render(&self, width: i32, height: i32, boxes: &[LayoutBox]) -> Option<Vec<u8>> {
@@ -65,36 +56,18 @@ impl SkiaRenderer {
             }
 
             // 3. Draw Text
-            if let Some(ref text) = b.text {
-                let normalized: String = text.split_whitespace().collect::<Vec<_>>().join(" ");
-                let trimmed = normalized.as_str();
-
+            if let Some(ref raw) = b.text {
+                let trimmed = text::normalize(raw);
                 if !trimmed.is_empty() {
-                    let mut text_style = TextStyle::new();
-                    text_style.set_font_size(b.font_size);
-                    text_style.set_color(b.text_color);
-
-                    if b.is_bold {
-                        text_style.set_font_style(skia_safe::FontStyle::bold());
-                    }
-
-                    // Fallback font chain
-                    text_style.set_font_families(&[
-                        "Times New Roman",
-                        "Segoe UI",
-                        "Nirmala UI",
-                        "Vrinda",
-                    ]);
-
-                    let para_style = ParagraphStyle::new();
-                    let mut builder = ParagraphBuilder::new(&para_style, &self.font_collection);
-                    builder.push_style(&text_style);
-                    builder.add_text(trimmed);
-
-                    let mut paragraph = builder.build();
-                    let max_width = if b.width > 0.0 { b.width } else { 800.0 };
-                    paragraph.layout(max_width);
-
+                    let mut paragraph = text::build_paragraph(
+                        &trimmed,
+                        b.font_size,
+                        b.is_bold,
+                        b.text_color,
+                        b.is_centered,
+                    );
+                    // Small epsilon avoids accidental wrapping from float rounding
+                    paragraph.layout(b.width + 0.5);
                     paragraph.paint(canvas, Point::new(b.x, b.y));
                 }
             }

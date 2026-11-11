@@ -11,6 +11,12 @@ pub struct NodeStyle {
     pub width: Option<f32>,
     pub height: Option<f32>,
 
+    // Flexbox
+    pub display: Option<String>,
+    pub flex_direction: Option<String>,
+    pub align_items: Option<String>,
+    pub justify_content: Option<String>,
+
     // Spacing
     pub padding_top: Option<f32>,
     pub padding_right: Option<f32>,
@@ -30,6 +36,7 @@ pub struct NodeStyle {
 
     // Typography
     pub font_size: Option<f32>,
+    pub font_weight: Option<String>,
     pub color: Option<Color>,
 }
 

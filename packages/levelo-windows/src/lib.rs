@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 
 pub mod canvas;
+pub mod text;
 pub mod command;
 pub mod style;
 pub mod layout;
@@ -86,6 +87,9 @@ unsafe extern "system" fn window_proc(
                 let boxes = CURRENT_LAYOUT_BOXES.get_ref();
                 // Find clicked element in reverse order (topmost layer first)
                 for b in boxes.iter().rev() {
+                    if b.tag == "text" {
+                        continue;
+                    }
                     if click_x >= b.x && click_x <= (b.x + b.width) && click_y >= b.y && click_y <= (b.y + b.height) {
                         clicked_node_id = Some(b.id);
                         break;

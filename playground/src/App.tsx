@@ -1,4 +1,5 @@
-import { state } from "levelojs";
+import { state, style } from "levelojs";
+import './App.css';
 
 export function App() {
   const [count, setCount] = state(0);
@@ -15,15 +16,15 @@ export function App() {
   }
 
   return (
-    <main id="root" style={{ background: "#00ff00" }}>
+    <main id="root" style={{ background: "#00ff00",  }}>
       <header>
         <h1>LeveloJS Native Engine and Web Engine</h1>
-        <p>Testing direct Skia rendering & reactivity without Webview or V8.</p>
+        <p style={{ color: '#ddd' }}>Testing direct Skia rendering & reactivity without Webview or V8.</p>
       </header>
 
       <div>শ্রী ক্ষমা বিদ্যালয় যুক্তাক্ষর</div>
-
       <p>😍🖐👍</p>
+      <p>漢字/汉字</p>
 
       <section
         id="reactive-test"
@@ -32,11 +33,12 @@ export function App() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          fontSize: 'bold'
         }}
       >
         <h2>Counter Test</h2>
-        <p style={{ display: "flex", flexDirection: "column" }}>
-          Current Count: <strong><p>{count()}</p></strong>
+        <p style={{ display: "flex" }}>
+          Current Count: {count()}
         </p>
 
         <button
@@ -60,13 +62,24 @@ export function App() {
           type="button"
           onClick={handleDynamicCondition}
         >
-          Toggle Content how did we are in the city
+          this is the big button on this canvas for checking button width, is that perfect or not
         </button>
 
         <div>
           {(visible() ? <p>Status: Active & Rendering Smoothly</p> : null)}
         </div>
       </section>
+
+      <div>
+        Type Test
+        <h1>Type Test: h1</h1>
+        <h2>Type Test: h2</h2>
+        <h3>Type Test: h3</h3>
+        <h4>Type Test: h4</h4>
+        <h5>Type Test: h5</h5>
+        <h6>Type Test: h6</h6>
+        <p>Type Test: paragraph</p>
+      </div>
     </main>
   );
 }

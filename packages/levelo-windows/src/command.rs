@@ -360,7 +360,11 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                     parent_node.children.push(child.0);
                 }
             }
-            Operation::InsertBefore { parent, child, reference } => {
+            Operation::InsertBefore {
+                parent,
+                child,
+                reference,
+            } => {
                 if let Some(parent_node) = nodes.get_mut(&parent.0) {
                     parent_node.children.retain(|&c| c != child.0);
                     if let Some(pos) = parent_node.children.iter().position(|&c| c == reference.0) {
@@ -370,7 +374,11 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                     }
                 }
             }
-            Operation::ReplaceChild { parent, new_child, old_child } => {
+            Operation::ReplaceChild {
+                parent,
+                new_child,
+                old_child,
+            } => {
                 if let Some(parent_node) = nodes.get_mut(&parent.0) {
                     if let Some(pos) = parent_node.children.iter().position(|&c| c == old_child.0) {
                         parent_node.children[pos] = new_child.0;
@@ -408,6 +416,7 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                         "width" => target.style.width = parse_px(value),
                         "height" => target.style.height = parse_px(value),
                         "font-size" => target.style.font_size = parse_px(value),
+                        "font-weight" => target.style.font_weight = Some(value.clone()),
                         "border-radius" => target.style.border_radius = parse_px(value),
                         "border-width" => target.style.border_width = parse_px(value),
                         "background" | "background-color" => {
@@ -419,6 +428,14 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                         "border-color" => {
                             target.style.border_color = Some(parse_color(value));
                         }
+                        "display" => target.style.display = Some(value.clone()),
+                        "flex-direction" => target.style.flex_direction = Some(value.clone()),
+                        "align-items" => target.style.align_items = Some(value.clone()),
+                        "justify-content" => target.style.justify_content = Some(value.clone()),
+                        "padding-top" => target.style.padding_top = parse_px(value),
+                        "padding-bottom" => target.style.padding_bottom = parse_px(value),
+                        "padding-left" => target.style.padding_left = parse_px(value),
+                        "padding-right" => target.style.padding_right = parse_px(value),
                         _ => {}
                     }
                 }
@@ -442,7 +459,7 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
         .collect();
 
     let mut result = Vec::with_capacity(nodes.len());
-    
+
     for id in &render_order {
         if !child_ids.contains(id) {
             collect_in_paint_order(*id, &mut nodes, &mut result, None, None);

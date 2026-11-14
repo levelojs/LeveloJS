@@ -122,7 +122,7 @@ export async function startDevServer(options: DevServerOptions = {}) {
           platform: 'browser',
           target: 'es2022',
           sourcemap: 'inline',
-          plugins: [leveloWebPlugin()],
+          plugins: [leveloWebPlugin(rootDir)],
         });
 
         const outputCode = buildResult.outputFiles?.[0]?.text || '';

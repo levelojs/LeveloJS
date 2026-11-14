@@ -17,3 +17,6 @@ export {
   batch,
 } from './runtime/reactivity/index.js';
 export { head } from './runtime/head.js';
+
+// types
+export type { JSX, Reactive, CSSProperties } from './types/jsx.js';

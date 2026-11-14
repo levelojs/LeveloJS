@@ -1,8 +1,19 @@
-// src/jsx.d.ts - Complete Type Definition Architecture for Levelo JS
+// src/types/jsx.ts - Complete Type Definition Architecture for Levelo JS
+
+export type Reactive<T> = T | (() => T);
+
+export type CSSProperties = {
+  [K in keyof CSSStyleDeclaration]?: Reactive<CSSStyleDeclaration[K] | number>;
+} & {
+  [customProperty: `--${string}`]: Reactive<string | number>;
+};
 
 declare global {
+  function h(tag: any, props?: Record<string, any> | null, ...children: any[]): any;
+  function Fragment(props: { children?: any }): any;
+
   namespace JSX {
-    type Element = Node | Element | any;
+    type Element = Node | any;
 
     export interface ElementAttributesProperty {
       props: {};
@@ -10,8 +21,6 @@ declare global {
     export interface ElementChildrenAttribute {
       children: {};
     }
-
-    type Reactive<T> = T | (() => T);
 
     export interface DOMEvents {
       onClick?: (e: MouseEvent) => void;
@@ -36,25 +45,61 @@ declare global {
     }
 
     export interface HTMLAttributes extends DOMEvents {
-      class?: Reactive<string>;
-      className?: Reactive<string>;
-      id?: Reactive<string>;
-      style?: Reactive<Partial<CSSStyleDeclaration> | string>;
+      class?: string | undefined;
+      className?: string | undefined;
+      id?: string | undefined;
+      style?: Reactive<CSSProperties | string>;
       renderString?: Reactive<string>;
       title?: Reactive<string>;
-      dir?: Reactive<string>;
+      dir?: Reactive<'ltr' | 'rtl' | 'auto'>;
       lang?: Reactive<string>;
       hidden?: Reactive<boolean>;
       tabIndex?: Reactive<number>;
       role?: Reactive<string>;
       children?: any;
+      [dataAttr: `data-${string}`]: Reactive<string | number | boolean | undefined>;
+      [ariaAttr: `aria-${string}`]: Reactive<string | number | boolean | undefined>;
+    }
+
+    export interface MetaHTMLAttributes extends HTMLAttributes {
+      charset?: string;
+      charSet?: string;
+      content?: Reactive<string>;
+      httpEquiv?: string;
+      'http-equiv'?: string;
+      media?: string;
+      name?: string;
+      property?: string;
+    }
+
+    export interface LinkHTMLAttributes extends HTMLAttributes {
+      as?: string;
+      crossOrigin?: 'anonymous' | 'use-credentials' | '';
+      crossorigin?: 'anonymous' | 'use-credentials' | '';
+      href?: Reactive<string>;
+      hrefLang?: string;
+      integrity?: string;
+      media?: string;
+      rel?: string;
+      sizes?: string;
+      type?: string;
+    }
+
+    export interface ScriptHTMLAttributes extends HTMLAttributes {
+      async?: boolean;
+      crossOrigin?: 'anonymous' | 'use-credentials' | '';
+      defer?: boolean;
+      integrity?: string;
+      noModule?: boolean;
+      src?: Reactive<string>;
+      type?: string;
     }
 
     export interface AnchorHTMLAttributes extends HTMLAttributes {
-      href?: Reactive<string>;
+      href?: string | undefined;
       target?: Reactive<'_blank' | '_self' | '_parent' | '_top'>;
       download?: Reactive<any>;
-      rel?: Reactive<string>;
+      rel?: string | undefined;
     }
 
     export interface ButtonHTMLAttributes extends HTMLAttributes {
@@ -118,6 +163,7 @@ declare global {
       width?: Reactive<number | string>;
       height?: Reactive<number | string>;
       loading?: Reactive<'eager' | 'lazy'>;
+      decoding?: Reactive<'sync' | 'async' | 'auto'>;
     }
 
     export interface SVGAttributes extends HTMLAttributes {
@@ -130,98 +176,30 @@ declare global {
       strokeLinejoin?: Reactive<'miter' | 'round' | 'bevel' | 'inherit'>;
       width?: Reactive<number | string>;
       height?: Reactive<number | string>;
+      d?: Reactive<string>;
+      cx?: Reactive<number | string>;
+      cy?: Reactive<number | string>;
+      r?: Reactive<number | string>;
+      x?: Reactive<number | string>;
+      y?: Reactive<number | string>;
       gradientTransform?: Reactive<string>;
       gradientUnits?: Reactive<string>;
       patternUnits?: Reactive<string>;
     }
 
-    // This is an old interface - not in used
-
-    //     export interface IntrinsicElements {
-    //       a: AnchorHTMLAttributes;
-    //       abbr: HTMLAttributes;
-    //       address: HTMLAttributes;
-    //       article: HTMLAttributes;
-    //       aside: HTMLAttributes;
-    //       audio: HTMLAttributes;
-    //       b: HTMLAttributes;
-    //       blockquote: HTMLAttributes;
-    //       body: HTMLAttributes;
-    //       br: HTMLAttributes;
-    //       button: ButtonHTMLAttributes;
-    //       canvas: HTMLAttributes;
-    //       code: HTMLAttributes;
-    //       div: HTMLAttributes;
-    //       em: HTMLAttributes;
-    //       footer: HTMLAttributes;
-    //       form: FormHTMLAttributes;
-    //       h1: HTMLAttributes;
-    //       h2: HTMLAttributes;
-    //       h3: HTMLAttributes;
-    //       h4: HTMLAttributes;
-    //       h5: HTMLAttributes;
-    //       h6: HTMLAttributes;
-    //       header: HTMLAttributes;
-    //       hr: HTMLAttributes;
-    //       i: HTMLAttributes;
-    //       iframe: HTMLAttributes;
-    //       img: ImgHTMLAttributes;
-    //       input: InputHTMLAttributes;
-    //       label: HTMLAttributes;
-    //       li: HTMLAttributes;
-    //       main: HTMLAttributes;
-    //       nav: HTMLAttributes;
-    //       option: OptionHTMLAttributes;
-    //       p: HTMLAttributes;
-    //       pre: HTMLAttributes;
-    //       section: HTMLAttributes;
-    //       select: SelectHTMLAttributes;
-    //       span: HTMLAttributes;
-    //       strong: HTMLAttributes;
-    //       table: HTMLAttributes;
-    //       tbody: HTMLAttributes;
-    //       td: HTMLAttributes;
-    //       textarea: TextAreaHTMLAttributes;
-    //       th: HTMLAttributes;
-    //       thead: HTMLAttributes;
-    //       tr: HTMLAttributes;
-    //       ul: HTMLAttributes;
-    //       ol: HTMLAttributes;
-    //       video: HTMLAttributes;
-
-    //       svg: SVGAttributes;
-    //       path: SVGAttributes;
-    //       circle: SVGAttributes;
-    //       rect: SVGAttributes;
-    //       line: SVGAttributes;
-    //       polyline: SVGAttributes;
-    //       polygon: SVGAttributes;
-    //       g: SVGAttributes;
-    //       text: SVGAttributes;
-    //       defs: SVGAttributes;
-    //       use: SVGAttributes;
-
-    //       math: HTMLAttributes;
-
-    //       [elemName: string]: HTMLAttributes;
-    //     }
-    //   }
-    // }
-
-    // Upgraded interface containing all essential web element - in use
     export interface IntrinsicElements {
-      /* ============================================================
-       * DOCUMENT / SEMANTIC
-       * ============================================================ */
+      /* DOCUMENT / METADATA */
       html: HTMLAttributes;
       head: HTMLAttributes;
       body: HTMLAttributes;
-      base: HTMLAttributes;
-      link: HTMLAttributes;
-      meta: HTMLAttributes;
+      base: { href?: string; target?: string } & HTMLAttributes;
+      link: LinkHTMLAttributes;
+      meta: MetaHTMLAttributes;
+      script: ScriptHTMLAttributes;
       style: HTMLAttributes;
       title: HTMLAttributes;
 
+      /* SEMANTIC */
       address: HTMLAttributes;
       article: HTMLAttributes;
       aside: HTMLAttributes;
@@ -238,14 +216,13 @@ declare global {
       section: HTMLAttributes;
       search: HTMLAttributes;
 
-      /* ============================================================
-       * TEXT / INLINE
-       * ============================================================ */
+      /* TEXT / INLINE */
       a: AnchorHTMLAttributes;
       abbr: HTMLAttributes;
       b: HTMLAttributes;
       bdi: HTMLAttributes;
       bdo: HTMLAttributes;
+      br: HTMLAttributes;
       cite: HTMLAttributes;
       code: HTMLAttributes;
       data: HTMLAttributes;
@@ -272,19 +249,16 @@ declare global {
       var: HTMLAttributes;
       wbr: HTMLAttributes;
 
-      /* ============================================================
-       * BLOCK / CONTENT
-       * ============================================================ */
+      /* BLOCK / CONTENT */
       blockquote: HTMLAttributes;
       div: HTMLAttributes;
       figure: HTMLAttributes;
       figcaption: HTMLAttributes;
       hr: HTMLAttributes;
+      p: HTMLAttributes;
       pre: HTMLAttributes;
 
-      /* ============================================================
-       * LISTS
-       * ============================================================ */
+      /* LISTS */
       dl: HTMLAttributes;
       dt: HTMLAttributes;
       dd: HTMLAttributes;
@@ -292,9 +266,7 @@ declare global {
       ul: HTMLAttributes;
       li: HTMLAttributes;
 
-      /* ============================================================
-       * TABLES
-       * ============================================================ */
+      /* TABLES */
       table: HTMLAttributes;
       caption: HTMLAttributes;
       colgroup: HTMLAttributes;
@@ -306,9 +278,7 @@ declare global {
       th: HTMLAttributes;
       td: HTMLAttributes;
 
-      /* ============================================================
-       * FORMS
-       * ============================================================ */
+      /* FORMS */
       form: FormHTMLAttributes;
       fieldset: HTMLAttributes;
       legend: HTMLAttributes;
@@ -324,9 +294,7 @@ declare global {
       meter: HTMLAttributes;
       progress: HTMLAttributes;
 
-      /* ============================================================
-       * MEDIA
-       * ============================================================ */
+      /* MEDIA */
       audio: HTMLAttributes;
       video: HTMLAttributes;
       source: HTMLAttributes;
@@ -338,21 +306,13 @@ declare global {
       object: HTMLAttributes;
       param: HTMLAttributes;
 
-      /* ============================================================
-       * INTERACTIVE
-       * ============================================================ */
+      /* INTERACTIVE */
       details: HTMLAttributes;
       summary: HTMLAttributes;
       dialog: HTMLAttributes;
 
-      /* ============================================================
-       * GRAPHICS
-       * ============================================================ */
+      /* GRAPHICS & SVG */
       canvas: HTMLAttributes;
-
-      /* ============================================================
-       * SVG
-       * ============================================================ */
       svg: SVGAttributes;
       g: SVGAttributes;
       path: SVGAttributes;
@@ -366,7 +326,6 @@ declare global {
       use: SVGAttributes;
       text: SVGAttributes;
       tspan: SVGAttributes;
-      title: SVGAttributes;
       desc: SVGAttributes;
       symbol: SVGAttributes;
       marker: SVGAttributes;
@@ -403,9 +362,7 @@ declare global {
       feTile: SVGAttributes;
       feTurbulence: SVGAttributes;
 
-      /* ============================================================
-       * MATHML
-       * ============================================================ */
+      /* MATHML */
       math: HTMLAttributes;
       mi: HTMLAttributes;
       mn: HTMLAttributes;
@@ -416,12 +373,7 @@ declare global {
       annotation: HTMLAttributes;
       semantics: HTMLAttributes;
 
-      /* ============================================================
-       * CUSTOM ELEMENTS
-       *
-       * The renderer itself is intentionally generic and can still
-       * create custom HTML elements.
-       * ============================================================ */
+      /* CUSTOM ELEMENTS */
       [elemName: string]: HTMLAttributes;
     }
   }

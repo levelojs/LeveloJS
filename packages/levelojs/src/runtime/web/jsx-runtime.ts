@@ -1,7 +1,7 @@
 // packages/levelojs/src/runtime/web/jsx-runtime.ts
 
 import { effect } from '../reactivity/index.js';
-import type { JSX as LeveloJSX } from '../jsx/jsx.d.ts';
+import type { JSX as LeveloJSX } from '../../types/jsx.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const MATH_NS = 'http://www.w3.org/1998/Math/MathML';

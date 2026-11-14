@@ -13,6 +13,7 @@ import {
   style,
 } from "levelojs";
 import "./App.css";
+import logo from '/levelojs.svg';
 
 // Child component to test mount() and cleanup() lifecycle hooks
 function LifecycleBox() {
@@ -67,6 +68,7 @@ function AboutView() {
     <div>
       <h3>About Route (/about)</h3>
       <p>Navigation works smoothly without full page reload.</p>
+      <img src={logo} />
     </div>
   );
 }

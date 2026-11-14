@@ -4,5 +4,9 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "noEmit": true,
+    "types": ["levelojs/client"],
+    "paths": {
+      "/*": ["./public/*"]
+    }
   }
 }

@@ -1,12 +1,35 @@
+import fsSync from 'node:fs';
+import path from 'node:path';
 import type { Plugin } from 'esbuild';
 import { readFile } from 'node:fs/promises';
 import { transformLeveloCode } from '../compiler/babel.js';
 
-export function leveloWebPlugin(): Plugin {
+export function leveloWebPlugin(rootDir: string = process.cwd()): Plugin {
   return {
     name: 'levelo-web-plugin',
     setup(build) {
-      // 1. Intercept JSX and TSX files
+      // Resolve root-relative public/ imports
+      build.onResolve({ filter: /^\/.*$/ }, (args) => {
+        if (args.kind !== 'import-statement') return null;
+
+        const publicFilePath = path.join(rootDir, 'public', args.path);
+        if (fsSync.existsSync(publicFilePath)) {
+          return {
+            path: args.path,
+            namespace: 'levelo-public-asset',
+          };
+        }
+        return null;
+      });
+
+      build.onLoad({ filter: /.*/, namespace: 'levelo-public-asset' }, (args) => {
+        return {
+          contents: `export default ${JSON.stringify(args.path)};`,
+          loader: 'js',
+        };
+      });
+
+      // Intercept JSX and TSX files
       build.onLoad({ filter: /\.[jt]sx$/ }, async (args) => {
         const source = await readFile(args.path, 'utf8');
 
@@ -28,7 +51,7 @@ export function leveloWebPlugin(): Plugin {
         }
       });
 
-      // 2. Intercept CSS files and dynamically inject them into the DOM <head>
+      // Intercept CSS files and dynamically inject them into the DOM <head>
       build.onLoad({ filter: /\.css$/ }, async (args) => {
         const cssContent = await readFile(args.path, 'utf8');
         // Convert CSS into an in-memory JS snippet that auto-injects into DOM

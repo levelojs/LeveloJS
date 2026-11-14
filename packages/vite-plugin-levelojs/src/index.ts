@@ -1,13 +1,13 @@
 // index.ts - Node-Isolated Levelo JS Compiler Plugin
 // CommonJS format mirroring vite-plugin-solid
 
-import { createFilter, FilterPattern, Plugin } from "vite";
+import { createFilter, FilterPattern, Plugin } from 'vite';
 
-import babel, { PluginObj, NodePath } from "@babel/core";
-import * as t from "@babel/types";
+import babel, { PluginObj, NodePath } from '@babel/core';
+import * as t from '@babel/types';
 
-import syntaxJsx from "@babel/plugin-syntax-jsx";
-import transformTypescript from "@babel/plugin-transform-typescript";
+import syntaxJsx from '@babel/plugin-syntax-jsx';
+import transformTypescript from '@babel/plugin-transform-typescript';
 
 interface LeveloPluginOptions {
   include?: FilterPattern;
@@ -17,25 +17,23 @@ interface LeveloPluginOptions {
 /**
  * Enterprise-Grade Vite Plugin for Levelo JS.
  */
-export function leveloPlugin(
-  options: LeveloPluginOptions = {},
-): Plugin {
+export function leveloPlugin(options: LeveloPluginOptions = {}): Plugin {
   const filter = createFilter(options.include, options.exclude);
   let projectRoot = process.cwd();
 
   return {
-    name: "vite-plugin-levelojs",
-    enforce: "pre",
+    name: 'vite-plugin-levelojs',
+    enforce: 'pre',
 
     async config(userConfig) {
       projectRoot = userConfig.root || process.cwd();
 
       return {
         optimizeDeps: {
-          include: ["levelojs"],
+          include: ['levelojs'],
           rolldownOptions: {
             transform: {
-              jsx: "preserve",
+              jsx: 'preserve',
             },
           },
         },
@@ -45,7 +43,7 @@ export function leveloPlugin(
     async transform(source: string, id: string) {
       if (!filter(id)) return null;
 
-      const cleanId = id.replace(/\?.*$/, "");
+      const cleanId = id.replace(/\?.*$/, '');
 
       if (!/\.[mc]?[tj]sx$/i.test(cleanId)) {
         return null;
@@ -56,10 +54,7 @@ export function leveloPlugin(
       const babelPlugins: any[] = [syntaxJsx];
 
       if (isTypescript) {
-        babelPlugins.push([
-          transformTypescript,
-          { isTSX: true },
-        ]);
+        babelPlugins.push([transformTypescript, { isTSX: true }]);
       }
 
       babelPlugins.push(leveloJsBabelTransformer);
@@ -76,21 +71,16 @@ export function leveloPlugin(
       };
 
       try {
-        const result = await babel.transformAsync(
-          source,
-          babelOpts,
-        );
+        const result = await babel.transformAsync(source, babelOpts);
 
         if (!result) return null;
 
         return {
-          code: result.code || "",
+          code: result.code || '',
           map: result.map,
         };
       } catch (err: any) {
-        this.error(
-          `[Levelo Compiler Error] ${cleanId} processing failed:\n${err.message}`,
-        );
+        this.error(`[Levelo Compiler Error] ${cleanId} processing failed:\n${err.message}`);
 
         return null;
       }
@@ -124,28 +114,18 @@ function transformJSX(
 ): t.CallExpression {
   const openingElement = path.node.openingElement;
 
-  const tagName = (
-    openingElement.name as t.JSXIdentifier
-  ).name;
+  const tagName = (openingElement.name as t.JSXIdentifier).name;
 
-  const isSvg = tagName === "svg";
-  const isMath = tagName === "math";
+  const isSvg = tagName === 'svg';
+  const isMath = tagName === 'math';
 
-  const namespace =
-    parentNamespace ||
-    (isSvg ? "svg" : isMath ? "math" : null);
+  const namespace = parentNamespace || (isSvg ? 'svg' : isMath ? 'math' : null);
 
-  const isComponent =
-    tagName[0] === tagName[0].toUpperCase();
+  const isComponent = tagName[0] === tagName[0].toUpperCase();
 
-  const factoryIdentifier = isComponent
-    ? types.identifier(tagName)
-    : types.stringLiteral(tagName);
+  const factoryIdentifier = isComponent ? types.identifier(tagName) : types.stringLiteral(tagName);
 
-  const properties: (
-    | t.ObjectProperty
-    | t.ObjectMethod
-  )[] = [];
+  const properties: (t.ObjectProperty | t.ObjectMethod)[] = [];
 
   openingElement.attributes.forEach((attr) => {
     if (!types.isJSXAttribute(attr)) {
@@ -161,12 +141,7 @@ function transformJSX(
      *   <button disabled />
      */
     if (!attr.value) {
-      properties.push(
-        types.objectProperty(
-          propKey,
-          types.booleanLiteral(true),
-        ),
-      );
+      properties.push(types.objectProperty(propKey, types.booleanLiteral(true)));
 
       return;
     }
@@ -177,12 +152,7 @@ function transformJSX(
      *   <div id="app" />
      */
     if (!types.isJSXExpressionContainer(attr.value)) {
-      properties.push(
-        types.objectProperty(
-          propKey,
-          attr.value as t.Expression,
-        ),
-      );
+      properties.push(types.objectProperty(propKey, attr.value as t.Expression));
 
       return;
     }
@@ -213,12 +183,7 @@ function transformJSX(
      * The runtime uses direct event functions for node.events.
      */
     if (isEventProp(propName)) {
-      properties.push(
-        types.objectProperty(
-          propKey,
-          expression as t.Expression,
-        ),
-      );
+      properties.push(types.objectProperty(propKey, expression as t.Expression));
 
       return;
     }
@@ -231,14 +196,10 @@ function transformJSX(
      */
     properties.push(
       types.objectMethod(
-        "get",
+        'get',
         propKey,
         [],
-        types.blockStatement([
-          types.returnStatement(
-            expression as t.Expression,
-          ),
-        ]),
+        types.blockStatement([types.returnStatement(expression as t.Expression)]),
       ),
     );
   });
@@ -249,11 +210,9 @@ function transformJSX(
   if (namespace) {
     properties.push(
       types.objectProperty(
-        types.identifier("__namespace"),
+        types.identifier('__namespace'),
         types.stringLiteral(
-          namespace === "svg"
-            ? "http://www.w3.org/2000/svg"
-            : "http://www.w3.org/1998/Math/MathML",
+          namespace === 'svg' ? 'http://www.w3.org/2000/svg' : 'http://www.w3.org/1998/Math/MathML',
         ),
       ),
     );
@@ -262,16 +221,14 @@ function transformJSX(
   const propsObject = types.objectExpression(properties);
 
   const children: t.Expression[] = [];
-  const childPaths = path.get("children");
+  const childPaths = path.get('children');
 
   path.node.children.forEach((child, index) => {
     if (types.isJSXText(child)) {
       const cleanText = child.value.trim();
 
       if (cleanText) {
-        children.push(
-          types.stringLiteral(cleanText),
-        );
+        children.push(types.stringLiteral(cleanText));
       }
 
       return;
@@ -285,12 +242,7 @@ function transformJSX(
          * JSX expressions become lazy getters so signals can update
          * only the binding that consumed them.
          */
-        children.push(
-          types.arrowFunctionExpression(
-            [],
-            expression as t.Expression,
-          ),
-        );
+        children.push(types.arrowFunctionExpression([], expression as t.Expression));
       }
 
       return;
@@ -307,14 +259,11 @@ function transformJSX(
     }
   });
 
-  const callExpression = types.callExpression(
-    types.identifier("h"),
-    [
-      factoryIdentifier,
-      propsObject,
-      ...children,
-    ],
-  );
+  const callExpression = types.callExpression(types.identifier('h'), [
+    factoryIdentifier,
+    propsObject,
+    ...children,
+  ]);
 
   path.replaceWith(callExpression as any);
   path.skip();
@@ -325,13 +274,9 @@ function transformJSX(
 /**
  * Deep AST Transformation Node Visitor.
  */
-function leveloJsBabelTransformer({
-  types,
-}: {
-  types: typeof t;
-}): PluginObj {
+function leveloJsBabelTransformer({ types }: { types: typeof t }): PluginObj {
   return {
-    name: "levelojs-jsx-transformer",
+    name: 'levelojs-jsx-transformer',
 
     visitor: {
       Program: {
@@ -339,26 +284,21 @@ function leveloJsBabelTransformer({
           const hasHImport = path.node.body.some(
             (node) =>
               types.isImportDeclaration(node) &&
-              node.source.value === "levelojs" &&
+              node.source.value === 'levelojs' &&
               node.specifiers.some(
                 (specifier) =>
                   types.isImportSpecifier(specifier) &&
                   types.isIdentifier(specifier.imported) &&
-                  specifier.imported.name === "h",
+                  specifier.imported.name === 'h',
               ),
           );
 
           if (!hasHImport) {
             path.unshiftContainer(
-              "body",
+              'body',
               types.importDeclaration(
-                [
-                  types.importSpecifier(
-                    types.identifier("h"),
-                    types.identifier("h"),
-                  ),
-                ],
-                types.stringLiteral("levelojs"),
+                [types.importSpecifier(types.identifier('h'), types.identifier('h'))],
+                types.stringLiteral('levelojs'),
               ),
             );
           }

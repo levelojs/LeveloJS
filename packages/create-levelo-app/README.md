@@ -42,6 +42,7 @@ npx create-levelo-app .
 ## What You Get
 
 ### For Javascript Template:
+
 ```
 my-app/
 ├── src/
@@ -56,6 +57,7 @@ my-app/
 └── package.json
 ```
 ### For TypeScript Template:
+
 ```
 my-app/
 ├── src/
@@ -73,23 +75,24 @@ my-app/
 ---
 
 ## Features
- - No Virtual DOM
- - Direct Real DOM
- - Runtime Overhead 0%
- - Bundle Size Ultra Light
- - JSX Support
- - Vite-powered workflow
- - Simple and lightweight setup
+
+- No Virtual DOM
+- Direct Real DOM
+- Runtime Overhead 0%
+- Bundle Size Ultra Light
+- JSX Support
+- Vite-powered workflow
+- Simple and lightweight setup
 
 ---
 
 ## Templates
 
-| Template | Status |
-|---|---|
+| Template             | Status       |
+| -------------------- | ------------ |
 | JavaScript (default) | ✅ Available |
-| TypeScript | ✅ Available |
-| Minimal | 🔜 Pending |
+| TypeScript           | ✅ Available |
+| Minimal              | 🔜 Pending   |
 
 ---
 

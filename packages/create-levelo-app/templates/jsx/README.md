@@ -25,11 +25,11 @@ That's it. You're leveling up.
 
 ## Templates
 
-| Template | Command |
-|---|---|
+| Template             | Command                        |
+| -------------------- | ------------------------------ |
 | JavaScript (default) | `npx create-levelo-app my-app` |
-| TypeScript | Pending |
-| Minimal | pending |
+| TypeScript           | Pending                        |
+| Minimal              | pending                        |
 
 ---
 
@@ -58,39 +58,44 @@ Levelo JS is a lightweight, ultra-fast reactive UI framework built by [Motion Mi
 ---
 
 ## Features
- - No Virtual DOM
- - Direct Real DOM
- - Runtime Overhead 0%
- - Bundle Size Ultra Light
- - JSX Support
- - Vite-powered workflow
- - Simple and lightweight setup
+
+- No Virtual DOM
+- Direct Real DOM
+- Runtime Overhead 0%
+- Bundle Size Ultra Light
+- JSX Support
+- Vite-powered workflow
+- Simple and lightweight setup
 
 ---
 
 ## Core API
- - state
- - effect
- - computed
- - cleanup
- - mount
- - style
- - head
- - render
- - h
- - Pages
- - Page
- - a
- - leveloPlugin
+
+- state
+- effect
+- computed
+- cleanup
+- mount
+- style
+- head
+- render
+- h
+- Pages
+- Page
+- a
+- leveloPlugin
 
 ---
 
 ## Community & Support
+
 - [Documentation](https://levelojs.motionmind.me)
 - [GitHub Repository](https://github.com/MotionMind2007/Levelo-Js)
 
 ## License
+
 MIT © Motion Mind
 
 ---
+
 Built with by [Motion Mind](https://lab.motionmind.me)

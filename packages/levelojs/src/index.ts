@@ -1,13 +1,13 @@
-export { h, jsx, jsxs, Fragment } from "./runtime/web/jsx-runtime.js";
-export { render, unmount } from "./runtime/web/dom.js";
+export { h, jsx, jsxs, Fragment } from './runtime/web/jsx-runtime.js';
+export { render, unmount } from './runtime/web/dom.js';
 export { launch } from './launch.js';
 
 // config
 export { defineConfig, type LeveloConfig, type WebConfig, type NativeConfig } from './config.js';
 
-export { Pages, Page, navigate } from "./runtime/router.js";
+export { Pages, Page, navigate } from './runtime/router.js';
 
-export { style } from "./styles/index.js";
+export { style } from './styles/index.js';
 export {
   state,
   effect,
@@ -15,5 +15,5 @@ export {
   mount,
   cleanup,
   batch,
-} from "./runtime/reactivity/index.js";
-export { head } from "./runtime/head.js";
+} from './runtime/reactivity/index.js';
+export { head } from './runtime/head.js';

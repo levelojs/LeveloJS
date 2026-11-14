@@ -1,5 +1,5 @@
-import { setOwner, Owner } from "./owner.js";
-import { isBatching, queue } from "./batch.js";
+import { setOwner, Owner } from './owner.js';
+import { isBatching, queue } from './batch.js';
 
 type Subscriber = () => void;
 type Dependency = Set<Subscriber>;
@@ -94,9 +94,7 @@ export function state<T>(initialValue: T): [Getter<T>, Setter<T>] {
 
   const setter: Setter<T> = (newValue) => {
     const resolvedValue =
-      typeof newValue === "function"
-        ? (newValue as (prev: T) => T)(value)
-        : newValue;
+      typeof newValue === 'function' ? (newValue as (prev: T) => T)(value) : newValue;
 
     if (Object.is(value, resolvedValue)) return;
 

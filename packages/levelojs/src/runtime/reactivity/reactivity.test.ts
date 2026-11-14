@@ -1,21 +1,21 @@
-import { describe, it, expect } from "vitest";
-import { state, effect } from "./reactivity.js";
-import { computed } from "./computed.js";
-import { batch } from "./batch.js";
+import { describe, it, expect } from 'vitest';
+import { state, effect } from './reactivity.js';
+import { computed } from './computed.js';
+import { batch } from './batch.js';
 
-describe("state", () => {
-  it("returns the initial value from the getter", () => {
+describe('state', () => {
+  it('returns the initial value from the getter', () => {
     const [get] = state(42);
     expect(get()).toBe(42);
   });
 
-  it("updates the value through the setter", () => {
+  it('updates the value through the setter', () => {
     const [get, set] = state(0);
     set(5);
     expect(get()).toBe(5);
   });
 
-  it("supports functional updates", () => {
+  it('supports functional updates', () => {
     const [get, set] = state(10);
     set((prev) => prev + 1);
     set((prev) => prev * 2);
@@ -41,8 +41,8 @@ describe("state", () => {
   });
 });
 
-describe("effect", () => {
-  it("runs immediately on creation", () => {
+describe('effect', () => {
+  it('runs immediately on creation', () => {
     let runs = 0;
 
     effect(() => {
@@ -52,7 +52,7 @@ describe("effect", () => {
     expect(runs).toBe(1);
   });
 
-  it("re-runs when a tracked signal changes", () => {
+  it('re-runs when a tracked signal changes', () => {
     const [get, set] = state(0);
     let seen: number[] = [];
 
@@ -66,7 +66,7 @@ describe("effect", () => {
     expect(seen).toEqual([0, 1, 2]);
   });
 
-  it("stops tracking after dispose", () => {
+  it('stops tracking after dispose', () => {
     const [get, set] = state(0);
     let runs = 0;
 
@@ -84,8 +84,8 @@ describe("effect", () => {
   });
 });
 
-describe("computed", () => {
-  it("derives a value from a signal", () => {
+describe('computed', () => {
+  it('derives a value from a signal', () => {
     const [count, setCount] = state(2);
     const doubled = computed(() => count() * 2);
 
@@ -95,7 +95,7 @@ describe("computed", () => {
     expect(doubled()).toBe(10);
   });
 
-  it("tracks multiple dependencies", () => {
+  it('tracks multiple dependencies', () => {
     const [a, setA] = state(1);
     const [b, setB] = state(2);
     const sum = computed(() => a() + b());
@@ -110,8 +110,8 @@ describe("computed", () => {
   });
 });
 
-describe("batch", () => {
-  it("groups multiple updates into one effect run", () => {
+describe('batch', () => {
+  it('groups multiple updates into one effect run', () => {
     const [a, setA] = state(1);
     const [b, setB] = state(2);
     let runs = 0;
@@ -132,7 +132,7 @@ describe("batch", () => {
     expect(runs).toBe(2);
   });
 
-  it("runs the batched effect synchronously after the batch completes", () => {
+  it('runs the batched effect synchronously after the batch completes', () => {
     const [value, setValue] = state(0);
     let observed = -1;
 

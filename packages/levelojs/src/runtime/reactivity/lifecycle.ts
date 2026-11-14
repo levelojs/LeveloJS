@@ -1,5 +1,5 @@
 // src/runtime/reactivity/lifecycle.ts
-import { activeOwner } from "./owner.js";
+import { activeOwner } from './owner.js';
 
 /**
  * Registers a cleanup callback that fires when the active ownership scope

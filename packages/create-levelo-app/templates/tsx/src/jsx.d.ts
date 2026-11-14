@@ -1,4 +1,4 @@
-import type { InternalRenderNode } from "levelojs";
+import type { InternalRenderNode } from 'levelojs';
 
 declare global {
   namespace JSX {

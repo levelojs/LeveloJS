@@ -33,9 +33,13 @@ export function style(rulesObj: StyleRules): ClassMap {
     // Extract the clean dotless class name from the selector token
     const isDotPrefixed = selector.startsWith('.');
     const rawClassName = isDotPrefixed ? selector.substring(1) : selector;
-    
+
     // Check if the selector represents a genuine isolated class target
-    const isPureClass = !selector.startsWith('@') && !selector.includes(' ') && selector !== 'button' && selector !== 'div';
+    const isPureClass =
+      !selector.startsWith('@') &&
+      !selector.includes(' ') &&
+      selector !== 'button' &&
+      selector !== 'div';
 
     if (isPureClass) {
       // THE HYBRID RESOLVER METRIC

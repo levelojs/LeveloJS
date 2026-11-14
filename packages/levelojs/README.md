@@ -34,8 +34,8 @@ npm install -D vite vite-plugin-levelojs
 Then configure Vite:
 
 ```ts
-import { defineConfig } from "vite";
-import { leveloPlugin } from "vite-plugin-levelojs";
+import { defineConfig } from 'vite';
+import { leveloPlugin } from 'vite-plugin-levelojs';
 
 export default defineConfig({
   plugins: [leveloPlugin()],
@@ -45,7 +45,7 @@ export default defineConfig({
 Use Levelo without knowing anything about the renderer internals:
 
 ```tsx
-import { render } from "levelojs";
+import { render } from 'levelojs';
 
 function App() {
   return (
@@ -56,7 +56,7 @@ function App() {
   );
 }
 
-render(App, document.getElementById("app"));
+render(App, document.getElementById('app'));
 ```
 
 ## Fine-grained updates
@@ -70,9 +70,7 @@ function Counter() {
   return (
     <div>
       <span>{count()}</span>
-      <button onclick={() => setCount(count() + 1)}>
-        Increment
-      </button>
+      <button onclick={() => setCount(count() + 1)}>Increment</button>
     </div>
   );
 }

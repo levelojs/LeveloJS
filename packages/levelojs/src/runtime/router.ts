@@ -1,8 +1,8 @@
 // src/runtime/router.ts
-import { h } from "./jsx-runtime.js";
-import { render, unmount } from "./web/dom.js";
-import { applyHeadUpdates } from "./head.js";
-import { getClean404Component } from "./templates/error404.js";
+import { h } from './jsx-runtime.js';
+import { render, unmount } from './web/dom.js';
+import { applyHeadUpdates } from './head.js';
+import { getClean404Component } from './templates/error404.js';
 
 type RouteComponent = () => Element | null | undefined;
 
@@ -10,10 +10,10 @@ const routes = new Map<string, RouteComponent>();
 const routeListeners = new Set<(path: string) => void>();
 
 export function navigate(path: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   if (window.location.pathname === path) return;
 
-  window.history.pushState({}, "", path);
+  window.history.pushState({}, '', path);
   notifyRouteListeners();
 }
 
@@ -25,33 +25,33 @@ function notifyRouteListeners(): void {
 function normalizePath(input: string): string {
   let path = input;
 
-  if (path.endsWith("/index.html")) {
-    path = path.replace(/\/index\.html$/, "");
+  if (path.endsWith('/index.html')) {
+    path = path.replace(/\/index\.html$/, '');
   }
 
-  if (path.length > 1 && path.endsWith("/")) {
-    path = path.replace(/\/+$/, "");
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.replace(/\/+$/, '');
   }
 
-  return path === "" ? "/" : path;
+  return path === '' ? '/' : path;
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("popstate", () => {
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', () => {
     notifyRouteListeners();
   });
 
-  document.addEventListener("click", (event: MouseEvent) => {
-    const anchor = (event.target as HTMLElement | null)?.closest("a");
+  document.addEventListener('click', (event: MouseEvent) => {
+    const anchor = (event.target as HTMLElement | null)?.closest('a');
     if (!anchor) return;
 
-    const href = anchor.getAttribute("href");
+    const href = anchor.getAttribute('href');
     if (
       !href ||
-      href.startsWith("http://") ||
-      href.startsWith("https://") ||
-      (href.startsWith("#") && href.length > 1) ||
-      anchor.target === "_blank"
+      href.startsWith('http://') ||
+      href.startsWith('https://') ||
+      (href.startsWith('#') && href.length > 1) ||
+      anchor.target === '_blank'
     ) {
       return;
     }
@@ -68,7 +68,7 @@ export interface PageProps {
 
 export function Page(props: PageProps): Record<string, unknown> {
   return {
-    type: "PAGE_CONFIG",
+    type: 'PAGE_CONFIG',
     path: props.path,
     component: props.component,
   };
@@ -79,8 +79,8 @@ export interface PagesProps {
 }
 
 export function Pages(props: PagesProps): HTMLElement {
-  const container = document.createElement("div");
-  container.className = "levelo-viewport-wrapper";
+  const container = document.createElement('div');
+  container.className = 'levelo-viewport-wrapper';
 
   const children =
     props.children === undefined
@@ -92,8 +92,8 @@ export function Pages(props: PagesProps): HTMLElement {
   for (const child of children) {
     if (
       child &&
-      typeof child === "object" &&
-      (child as { type?: unknown }).type === "PAGE_CONFIG"
+      typeof child === 'object' &&
+      (child as { type?: unknown }).type === 'PAGE_CONFIG'
     ) {
       const page = child as unknown as PageProps;
       routes.set(normalizePath(page.path), page.component as RouteComponent);

@@ -1,6 +1,6 @@
 Here's the complete `packages/vite-plugin-levelojs/README.md`. Replace the entire file with this:
 
-```md
+````md
 # vite-plugin-levelojs
 
 Official Vite plugin for Levelo JS.
@@ -22,16 +22,17 @@ no reconciliation, no React runtime.
 ```bash
 npm install levelojs vite-plugin-levelojs
 ```
+````
 
 ## Usage
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import { leveloPlugin } from "vite-plugin-levelojs";
+import { defineConfig } from 'vite';
+import { leveloPlugin } from 'vite-plugin-levelojs';
 
 export default defineConfig({
-  plugins: [leveloPlugin()]
+  plugins: [leveloPlugin()],
 });
 ```
 
@@ -44,13 +45,13 @@ The plugin does not inject the `h` factory. Files that use JSX must import
 it from `levelojs`:
 
 ```tsx
-import { h, render } from "levelojs";
+import { h, render } from 'levelojs';
 
 function App() {
   return <h1>Hello Levelo</h1>;
 }
 
-render(App, document.getElementById("app"));
+render(App, document.getElementById('app'));
 ```
 
 ### Optional: automatic injection
@@ -62,8 +63,8 @@ adds one for you:
 export default defineConfig({
   plugins: [leveloPlugin()],
   esbuild: {
-    jsxInject: `import { h } from "levelojs"`
-  }
+    jsxInject: `import { h } from "levelojs"`,
+  },
 });
 ```
 
@@ -74,26 +75,26 @@ import — not both, or you will get a duplicate `h` binding.
 ## What the transform produces
 
 ```tsx
-<h1>Hello</h1>
+<h1>Hello</h1>;
 ```
 
 becomes:
 
 ```ts
-h("h1", null, "Hello");
+h('h1', null, 'Hello');
 ```
 
 Reactive expressions are wrapped as lazy getters so the renderer can bind
 them to the signal they read:
 
 ```tsx
-<span>{count()}</span>
+<span>{count()}</span>;
 ```
 
 becomes:
 
 ```ts
-h("span", null, () => count());
+h('span', null, () => count());
 ```
 
 The getter is materialized once for the initial mount and retained for
@@ -115,10 +116,10 @@ leveloPlugin({
 });
 ```
 
-| Option  | Type            | Description         |
-| ------- | --------------- | ------------------- |
-| include | `FilterPattern` | Files to include    |
-| exclude | `FilterPattern` | Files to exclude    |
+| Option  | Type            | Description      |
+| ------- | --------------- | ---------------- |
+| include | `FilterPattern` | Files to include |
+| exclude | `FilterPattern` | Files to exclude |
 
 Both follow the same syntax as Vite's `createFilter`.
 
@@ -135,6 +136,7 @@ Both follow the same syntax as Vite's `createFilter`.
 ## License
 
 MIT
+
 ```
 
 That's the full file, top to bottom. Save it over the current `README.md` in `packages/vite-plugin-levelojs/`.
@@ -148,4 +150,4 @@ Then pick a direction:
 - **A** — Write tests
 - **B** — Design 2 routing
 - **C** — Pivot to Rust
-- **D** — Docs and templates cleanup
+- **D** — Docs and templates cleanup```

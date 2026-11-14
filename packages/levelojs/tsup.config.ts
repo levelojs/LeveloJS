@@ -1,24 +1,24 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from 'tsup';
 
 export default defineConfig([
   {
     entry: {
-      index: "src/index.ts",
-      native: "src/runtime/native/index.ts",
+      index: 'src/index.ts',
+      native: 'src/runtime/native/index.ts',
     },
-    format: ["cjs", "esm"],
+    format: ['cjs', 'esm'],
     dts: true,
     splitting: true,
     sourcemap: true,
     clean: true,
     minify: true,
     external: [
-      "@babel/core",
-      "@babel/plugin-syntax-jsx",
-      "vite",
-      "@babel/types",
-      "@babel/plugin-transform-typescript",
-      "levelojs/wasm",
+      '@babel/core',
+      '@babel/plugin-syntax-jsx',
+      'vite',
+      '@babel/types',
+      '@babel/plugin-transform-typescript',
+      'levelojs/wasm',
     ],
   },
 ]);

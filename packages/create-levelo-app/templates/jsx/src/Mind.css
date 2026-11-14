@@ -1,8 +1,8 @@
 /* Custom Font Imports & Typography Rules */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap");
 
 .levelo-app {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   background-color: #fcfbfe; /* Slightly warm purple-tinted background */
   color: #0f172a;
   min-height: 100vh;
@@ -13,7 +13,7 @@
 }
 
 .heading-font {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 /* Navbar Layout */
@@ -156,7 +156,9 @@
   font-size: 16px;
   font-weight: 600;
   box-shadow: 0 10px 25px -5px rgba(91, 79, 255, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .btn-primary:hover {
@@ -267,7 +269,9 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(91, 79, 255, 0.2);
-  transition: transform 0.1s ease, opacity 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    opacity 0.2s ease;
 }
 
 .btn-action:hover {
@@ -291,7 +295,9 @@
   border: 1px solid #eef0f6;
   padding: 32px;
   border-radius: 24px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .feature-card:hover {

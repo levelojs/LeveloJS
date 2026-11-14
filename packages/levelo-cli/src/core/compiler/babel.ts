@@ -1,26 +1,26 @@
-import * as babel from "@babel/core";
-import type { NodePath } from "@babel/core";
-import * as t from "@babel/types";
-import syntaxJsx from "@babel/plugin-syntax-jsx";
-import transformTypescript from "@babel/plugin-transform-typescript";
+import * as babel from '@babel/core';
+import type { NodePath } from '@babel/core';
+import * as t from '@babel/types';
+import syntaxJsx from '@babel/plugin-syntax-jsx';
+import transformTypescript from '@babel/plugin-transform-typescript';
 
-export type TargetPlatform = "web" | "native" | "windows" | "android";
+export type TargetPlatform = 'web' | 'native' | 'windows' | 'android';
 
 // Always import from "levelojs".
 // The bundler decides web vs native via package.json export conditions.
-const JSX_IMPORT_PATH = "levelojs";
+const JSX_IMPORT_PATH = 'levelojs';
 
 function isEventProp(name: string): boolean {
   return /^on[A-Z]/.test(name) || /^on[a-z]/.test(name);
 }
 
 // `platform` is kept for future platform-specific transforms
-function leveloTransformer(_platform: TargetPlatform = "web") {
+function leveloTransformer(_platform: TargetPlatform = 'web') {
   return ({ types }: { types: typeof t }) => {
     let hasJsx = false;
 
     return {
-      name: "levelojs-jsx-transformer",
+      name: 'levelojs-jsx-transformer',
       visitor: {
         Program: {
           enter() {
@@ -38,17 +38,17 @@ function leveloTransformer(_platform: TargetPlatform = "web") {
                   (specifier) =>
                     types.isImportSpecifier(specifier) &&
                     types.isIdentifier(specifier.imported) &&
-                    specifier.imported.name === "h"
-                )
+                    specifier.imported.name === 'h',
+                ),
             );
 
             if (!hasHImport) {
               path.unshiftContainer(
-                "body",
+                'body',
                 types.importDeclaration(
-                  [types.importSpecifier(types.identifier("h"), types.identifier("h"))],
-                  types.stringLiteral(JSX_IMPORT_PATH)
-                )
+                  [types.importSpecifier(types.identifier('h'), types.identifier('h'))],
+                  types.stringLiteral(JSX_IMPORT_PATH),
+                ),
               );
             }
           },
@@ -62,8 +62,8 @@ function leveloTransformer(_platform: TargetPlatform = "web") {
             const openingElement = path.node.openingElement;
             const tagName = (openingElement.name as t.JSXIdentifier).name;
 
-            const isSvg = tagName === "svg";
-            const isMath = tagName === "math";
+            const isSvg = tagName === 'svg';
+            const isMath = tagName === 'math';
             const isComponent = tagName[0] === tagName[0].toUpperCase();
             const factoryIdentifier = isComponent
               ? types.identifier(tagName)
@@ -97,22 +97,22 @@ function leveloTransformer(_platform: TargetPlatform = "web") {
 
               properties.push(
                 types.objectMethod(
-                  "get",
+                  'get',
                   propKey,
                   [],
-                  types.blockStatement([types.returnStatement(expression as t.Expression)])
-                )
+                  types.blockStatement([types.returnStatement(expression as t.Expression)]),
+                ),
               );
             });
 
             if (isSvg || isMath) {
               properties.push(
                 types.objectProperty(
-                  types.identifier("__namespace"),
+                  types.identifier('__namespace'),
                   types.stringLiteral(
-                    isSvg ? "http://www.w3.org/2000/svg" : "http://www.w3.org/1998/Math/MathML"
-                  )
-                )
+                    isSvg ? 'http://www.w3.org/2000/svg' : 'http://www.w3.org/1998/Math/MathML',
+                  ),
+                ),
               );
             }
 
@@ -139,7 +139,7 @@ function leveloTransformer(_platform: TargetPlatform = "web") {
               }
             });
 
-            const callExpression = types.callExpression(types.identifier("h"), [
+            const callExpression = types.callExpression(types.identifier('h'), [
               factoryIdentifier,
               propsObject,
               ...children,
@@ -156,10 +156,10 @@ function leveloTransformer(_platform: TargetPlatform = "web") {
 export async function transformLeveloCode(
   code: string,
   id: string,
-  platform: TargetPlatform = "web"
+  platform: TargetPlatform = 'web',
 ): Promise<string> {
-  const isTsx = id.endsWith(".tsx");
-  const isTs = id.endsWith(".ts");
+  const isTsx = id.endsWith('.tsx');
+  const isTs = id.endsWith('.ts');
   const plugins: any[] = [syntaxJsx];
 
   // Enable TypeScript transformation for both .ts and .tsx files
@@ -176,5 +176,5 @@ export async function transformLeveloCode(
     babelrc: false,
   });
 
-  return result?.code || "";
+  return result?.code || '';
 }

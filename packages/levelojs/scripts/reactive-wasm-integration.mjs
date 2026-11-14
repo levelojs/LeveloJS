@@ -1,6 +1,6 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   DefaultRenderer,
@@ -10,7 +10,7 @@ import {
   NativeRendererExecutor,
   LeveloWasmBridge,
   ReactiveRuntime,
-} from "../dist/index.js";
+} from '../dist/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 async function main() {
   const wasmPath = path.resolve(
     __dirname,
-    "../../../native/levelo-bindings/wasm/pkg/levelo_wasm_bg.wasm",
+    '../../../native/levelo-bindings/wasm/pkg/levelo_wasm_bg.wasm',
   );
 
   const wasmBytes = await fs.readFile(wasmPath);
@@ -32,10 +32,10 @@ async function main() {
     const adapter = new NativeAdapter(executor);
     const renderer = new DefaultRenderer(adapter);
 
-    const root = new InternalRenderNode(1, "div");
+    const root = new InternalRenderNode(1, 'div');
 
-    const text = new InternalRenderNode(2, "#text");
-    text.props.set("text", "Initial");
+    const text = new InternalRenderNode(2, '#text');
+    text.props.set('text', 'Initial');
 
     root.appendChild(text);
 
@@ -46,9 +46,7 @@ async function main() {
     const initialCount = bridge.nodeCount();
 
     if (initialCount !== 2) {
-      throw new Error(
-        `[Levelo] Expected 2 nodes after mount, received ${initialCount}.`,
-      );
+      throw new Error(`[Levelo] Expected 2 nodes after mount, received ${initialCount}.`);
     }
 
     /*
@@ -57,7 +55,7 @@ async function main() {
      * The update must be expressed as a targeted SetText
      * operation rather than rebuilding or comparing trees.
      */
-    let value = "Updated";
+    let value = 'Updated';
 
     text.reactiveText = () => value;
 
@@ -65,21 +63,21 @@ async function main() {
 
     reactiveRuntime.activate(root);
 
-    value = "Updated again";
+    value = 'Updated again';
 
     /*
      * Trigger the reactive binding.
      */
     reactiveRuntime.dispose(root);
 
-    console.log("[Levelo] Reactive WASM integration passed.");
-    console.log("[Levelo] Rust node count:", bridge.nodeCount());
+    console.log('[Levelo] Reactive WASM integration passed.');
+    console.log('[Levelo] Rust node count:', bridge.nodeCount());
   } finally {
     bridge.dispose();
   }
 }
 
 main().catch((error) => {
-  console.error("[Levelo] Reactive WASM integration failed:", error);
+  console.error('[Levelo] Reactive WASM integration failed:', error);
   process.exitCode = 1;
 });

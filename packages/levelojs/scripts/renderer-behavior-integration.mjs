@@ -5,7 +5,7 @@ import {
   OperationType,
   h,
   state,
-} from "../dist/index.js";
+} from '../dist/index.js';
 
 class RecordingAdapter {
   operations = [];
@@ -32,8 +32,8 @@ function assert(condition, message) {
 }
 
 function textNode(id, text) {
-  const node = new InternalRenderNode(id, "#text");
-  node.props.set("text", text);
+  const node = new InternalRenderNode(id, '#text');
+  node.props.set('text', text);
   return node;
 }
 
@@ -49,17 +49,13 @@ function element(id, type, text) {
 
 function childTexts(node) {
   return node.children.map((child) => {
-    if (child.type === "#text") {
-      return String(child.props.get("text"));
+    if (child.type === '#text') {
+      return String(child.props.get('text'));
     }
 
-    const text = child.children.find(
-      (grandchild) => grandchild.type === "#text",
-    );
+    const text = child.children.find((grandchild) => grandchild.type === '#text');
 
-    return text
-      ? String(text.props.get("text"))
-      : child.type;
+    return text ? String(text.props.get('text')) : child.type;
   });
 }
 
@@ -93,25 +89,19 @@ async function main() {
 
     const [showDynamic, setShowDynamic] = state(false);
 
-    const before = element(2, "span", "Before");
-    const after = element(4, "span", "After");
+    const before = element(2, 'span', 'Before');
+    const after = element(4, 'span', 'After');
 
-    const dynamic = element(6, "span", "Dynamic");
+    const dynamic = element(6, 'span', 'Dynamic');
 
-    const root = h(
-      "div",
-      null,
-      before,
-      () => (showDynamic() ? dynamic : null),
-      after,
-    );
+    const root = h('div', null, before, () => (showDynamic() ? dynamic : null), after);
 
     renderer.render(new RenderTree(root));
 
     assertOrder(
       root,
-      ["Before", "After"],
-      "initial empty dynamic region should preserve static order",
+      ['Before', 'After'],
+      'initial empty dynamic region should preserve static order',
     );
 
     adapter.clear();
@@ -120,18 +110,18 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "Dynamic", "After"],
-      "dynamic node should be inserted between static siblings",
+      ['Before', 'Dynamic', 'After'],
+      'dynamic node should be inserted between static siblings',
     );
 
     assert(
       hasOperation(adapter, OperationType.InsertBefore),
-      "empty dynamic region should use targeted InsertBefore",
+      'empty dynamic region should use targeted InsertBefore',
     );
 
     assert(
       !hasOperation(adapter, OperationType.ReplaceChild),
-      "dynamic insertion should not use ReplaceChild",
+      'dynamic insertion should not use ReplaceChild',
     );
 
     renderer.dispose(new RenderTree(root));
@@ -149,15 +139,15 @@ async function main() {
     const [firstVisible, setFirstVisible] = state(false);
     const [secondVisible, setSecondVisible] = state(false);
 
-    const before = element(11, "span", "Before");
-    const middle = element(13, "span", "Middle");
-    const after = element(15, "span", "After");
+    const before = element(11, 'span', 'Before');
+    const middle = element(13, 'span', 'Middle');
+    const after = element(15, 'span', 'After');
 
-    const first = element(17, "span", "First");
-    const second = element(19, "span", "Second");
+    const first = element(17, 'span', 'First');
+    const second = element(19, 'span', 'Second');
 
     const root = h(
-      "div",
+      'div',
       null,
       before,
       () => (firstVisible() ? first : null),
@@ -170,8 +160,8 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "Middle", "After"],
-      "two initially-empty dynamic regions should preserve static order",
+      ['Before', 'Middle', 'After'],
+      'two initially-empty dynamic regions should preserve static order',
     );
 
     adapter.clear();
@@ -180,8 +170,8 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "First", "Middle", "After"],
-      "first dynamic region should insert at its original position",
+      ['Before', 'First', 'Middle', 'After'],
+      'first dynamic region should insert at its original position',
     );
 
     adapter.clear();
@@ -190,13 +180,13 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "First", "Middle", "Second", "After"],
-      "second dynamic region should account for the earlier dynamic insertion",
+      ['Before', 'First', 'Middle', 'Second', 'After'],
+      'second dynamic region should account for the earlier dynamic insertion',
     );
 
     assert(
       hasOperation(adapter, OperationType.InsertBefore),
-      "second dynamic insertion should use targeted InsertBefore",
+      'second dynamic insertion should use targeted InsertBefore',
     );
 
     renderer.dispose(new RenderTree(root));
@@ -211,27 +201,17 @@ async function main() {
 
     const [items, setItems] = state([]);
 
-    const before = element(22, "span", "Before");
-    const after = element(24, "span", "After");
+    const before = element(22, 'span', 'Before');
+    const after = element(24, 'span', 'After');
 
-    const first = element(26, "span", "One");
-    const second = element(28, "span", "Two");
+    const first = element(26, 'span', 'One');
+    const second = element(28, 'span', 'Two');
 
-    const root = h(
-      "div",
-      null,
-      before,
-      () => items(),
-      after,
-    );
+    const root = h('div', null, before, () => items(), after);
 
     renderer.render(new RenderTree(root));
 
-    assertOrder(
-      root,
-      ["Before", "After"],
-      "empty array dynamic region should produce no nodes",
-    );
+    assertOrder(root, ['Before', 'After'], 'empty array dynamic region should produce no nodes');
 
     adapter.clear();
 
@@ -239,13 +219,13 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "One", "Two", "After"],
-      "dynamic array should insert all nodes in order",
+      ['Before', 'One', 'Two', 'After'],
+      'dynamic array should insert all nodes in order',
     );
 
     assert(
       hasOperation(adapter, OperationType.InsertBefore),
-      "multiple dynamic nodes should be inserted with targeted operations",
+      'multiple dynamic nodes should be inserted with targeted operations',
     );
 
     renderer.dispose(new RenderTree(root));
@@ -258,24 +238,20 @@ async function main() {
     const adapter = new RecordingAdapter();
     const renderer = new DefaultRenderer(adapter);
 
-    const dynamic = element(31, "span", "Dynamic");
+    const dynamic = element(31, 'span', 'Dynamic');
     const [visible, setVisible] = state(true);
 
     const root = h(
-      "div",
+      'div',
       null,
-      element(32, "span", "Before"),
+      element(32, 'span', 'Before'),
       () => (visible() ? dynamic : null),
-      element(34, "span", "After"),
+      element(34, 'span', 'After'),
     );
 
     renderer.render(new RenderTree(root));
 
-    assertOrder(
-      root,
-      ["Before", "Dynamic", "After"],
-      "dynamic node should initially be mounted",
-    );
+    assertOrder(root, ['Before', 'Dynamic', 'After'], 'dynamic node should initially be mounted');
 
     adapter.clear();
 
@@ -283,13 +259,13 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "After"],
-      "dynamic node should be removed without disturbing static siblings",
+      ['Before', 'After'],
+      'dynamic node should be removed without disturbing static siblings',
     );
 
     assert(
       hasOperation(adapter, OperationType.RemoveChild),
-      "dynamic removal should use targeted RemoveChild",
+      'dynamic removal should use targeted RemoveChild',
     );
 
     renderer.dispose(new RenderTree(root));
@@ -302,26 +278,22 @@ async function main() {
     const adapter = new RecordingAdapter();
     const renderer = new DefaultRenderer(adapter);
 
-    const first = element(41, "span", "First");
-    const second = element(43, "span", "Second");
+    const first = element(41, 'span', 'First');
+    const second = element(43, 'span', 'Second');
 
     const [current, setCurrent] = state(first);
 
     const root = h(
-      "div",
+      'div',
       null,
-      element(44, "span", "Before"),
+      element(44, 'span', 'Before'),
       () => current(),
-      element(46, "span", "After"),
+      element(46, 'span', 'After'),
     );
 
     renderer.render(new RenderTree(root));
 
-    assertOrder(
-      root,
-      ["Before", "First", "After"],
-      "initial dynamic value should be mounted",
-    );
+    assertOrder(root, ['Before', 'First', 'After'], 'initial dynamic value should be mounted');
 
     adapter.clear();
 
@@ -329,18 +301,18 @@ async function main() {
 
     assertOrder(
       root,
-      ["Before", "Second", "After"],
-      "dynamic replacement should preserve its position",
+      ['Before', 'Second', 'After'],
+      'dynamic replacement should preserve its position',
     );
 
     assert(
       hasOperation(adapter, OperationType.RemoveChild),
-      "dynamic replacement should remove the previous node",
+      'dynamic replacement should remove the previous node',
     );
 
     assert(
       hasOperation(adapter, OperationType.InsertBefore),
-      "dynamic replacement should insert the new node at the same position",
+      'dynamic replacement should insert the new node at the same position',
     );
 
     renderer.dispose(new RenderTree(root));
@@ -357,56 +329,43 @@ async function main() {
     const adapter = new RecordingAdapter();
     const renderer = new DefaultRenderer(adapter);
 
-    const [value, setValue] = state("Initial");
+    const [value, setValue] = state('Initial');
 
-    const root = h(
-      "div",
-      null,
-      () => value(),
-    );
+    const root = h('div', null, () => value());
 
     renderer.render(new RenderTree(root));
 
-    assert(
-      childTexts(root)[0] === "Initial",
-      "reactive text should have its initial value",
-    );
+    assert(childTexts(root)[0] === 'Initial', 'reactive text should have its initial value');
 
     adapter.clear();
 
-    setValue("Updated");
+    setValue('Updated');
 
     const setTextOperation = adapter.operations.find(
       (operation) => operation.type === OperationType.SetText,
     );
 
-    assert(
-      Boolean(setTextOperation),
-      "reactive text should emit targeted SetText",
-    );
+    assert(Boolean(setTextOperation), 'reactive text should emit targeted SetText');
 
-    assert(
-      setTextOperation?.payload?.text === "Updated",
-      "SetText should carry the updated value",
-    );
+    assert(setTextOperation?.payload?.text === 'Updated', 'SetText should carry the updated value');
 
     assert(
       !hasOperation(adapter, OperationType.CreateText),
-      "reactive text update should not recreate the text node",
+      'reactive text update should not recreate the text node',
     );
 
     assert(
       !hasOperation(adapter, OperationType.CreateElement),
-      "reactive text update should not recreate elements",
+      'reactive text update should not recreate elements',
     );
 
     renderer.dispose(new RenderTree(root));
   }
 
-  console.log("[Levelo] Renderer behavior integration passed.");
+  console.log('[Levelo] Renderer behavior integration passed.');
 }
 
 main().catch((error) => {
-  console.error("[Levelo] Renderer behavior integration failed:", error);
+  console.error('[Levelo] Renderer behavior integration failed:', error);
   process.exitCode = 1;
 });

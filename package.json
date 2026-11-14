@@ -5,10 +5,10 @@
   },
   "description": "Super fast beginner friendly lightweight javascript framework, powered by Motion Mind",
   "scripts": {
-    "build:wasm": "cd native/levelo-bindings/wasm && wasm-pack build --target bundler && wasm-pack build --target nodejs --out-dir pkg-node",
-    "build:js": "npm run build --workspace=vite-plugin-levelojs && npm run build --workspace=levelojs",
-    "build": "npm run build:wasm && npm run build:js",
-    "lockfile:npm": "npm install --package-lock-only --ignore-scripts"
+    "build": "pnpm -r build",
+    "test": "pnpm -r --if-present test",
+    "format": "biome format --write packages",
+    "lint": "biome check packages"
   },
   "repository": {
     "type": "git",

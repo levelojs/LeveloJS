@@ -1,8 +1,8 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { LeveloWasmBridge } from "../dist/index.js";
+import { LeveloWasmBridge } from '../dist/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 async function main() {
   const wasmPath = path.resolve(
     __dirname,
-    "../../../native/levelo-bindings/wasm/pkg/levelo_wasm_bg.wasm",
+    '../../../native/levelo-bindings/wasm/pkg/levelo_wasm_bg.wasm',
   );
 
   const wasmBytes = await fs.readFile(wasmPath);
@@ -23,86 +23,86 @@ async function main() {
     bridge.execute([
       // Creation
       {
-        type: "CreateElement",
+        type: 'CreateElement',
         node: 1,
-        elementType: "div",
+        elementType: 'div',
       },
       {
-        type: "CreateText",
+        type: 'CreateText',
         node: 2,
-        text: "Hello from Rust",
+        text: 'Hello from Rust',
       },
 
       // Tree structure
       {
-        type: "AppendChild",
+        type: 'AppendChild',
         parent: 1,
         child: 2,
       },
 
       // Property
       {
-        type: "SetProperty",
+        type: 'SetProperty',
         node: 1,
-        name: "id",
-        value: "app",
+        name: 'id',
+        value: 'app',
       },
 
       // Style
       {
-        type: "SetStyle",
+        type: 'SetStyle',
         node: 1,
-        name: "color",
-        value: "red",
+        name: 'color',
+        value: 'red',
       },
 
       // Text update
       {
-        type: "SetText",
+        type: 'SetText',
         node: 2,
-        text: "Hello from Levelo Rust",
+        text: 'Hello from Levelo Rust',
       },
 
       // Property removal
       {
-        type: "RemoveProperty",
+        type: 'RemoveProperty',
         node: 1,
-        name: "id",
+        name: 'id',
       },
 
       // Style removal
       {
-        type: "RemoveStyle",
+        type: 'RemoveStyle',
         node: 1,
-        name: "color",
+        name: 'color',
       },
 
       // Tree removal
       {
-        type: "RemoveChild",
+        type: 'RemoveChild',
         parent: 1,
         child: 2,
       },
 
       // Node cleanup
       {
-        type: "DeleteNode",
+        type: 'DeleteNode',
         node: 2,
       },
       {
-        type: "DeleteNode",
+        type: 'DeleteNode',
         node: 1,
       },
     ]);
 
-    console.log("[Levelo] Full WASM operation pipeline passed.");
-    console.log("[Levelo] Rust node count:", bridge.nodeCount());
+    console.log('[Levelo] Full WASM operation pipeline passed.');
+    console.log('[Levelo] Rust node count:', bridge.nodeCount());
   } finally {
     bridge.dispose();
   }
 }
 
 main().catch((error) => {
-  console.error("[Levelo] WASM smoke test failed:", error);
+  console.error('[Levelo] WASM smoke test failed:', error);
   process.exitCode = 1;
 });

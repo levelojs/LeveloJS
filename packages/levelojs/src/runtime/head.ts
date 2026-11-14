@@ -78,10 +78,10 @@ export function head(config: HeadConfig) {
     keywords: 'keywords',
     themeColor: 'theme-color',
     viewport: 'viewport',
-    author: 'author'
+    author: 'author',
   };
 
-  Object.keys(metaShortcuts).forEach(key => {
+  Object.keys(metaShortcuts).forEach((key) => {
     if (config[key]) {
       injectMetaTag({ name: metaShortcuts[key], content: config[key] });
     }
@@ -89,17 +89,17 @@ export function head(config: HeadConfig) {
 
   // Inject Dynamic Meta Array
   if (Array.isArray(config.meta)) {
-    config.meta.forEach(metaObj => injectMetaTag(metaObj));
+    config.meta.forEach((metaObj) => injectMetaTag(metaObj));
   }
 
   // Inject Dynamic Link Array
   if (Array.isArray(config.link)) {
-    config.link.forEach(linkObj => injectLinkTag(linkObj));
+    config.link.forEach((linkObj) => injectLinkTag(linkObj));
   }
 
   // Inject Dynamic Script Array
   if (Array.isArray(config.script)) {
-    config.script.forEach(scriptObj => injectScriptTag(scriptObj));
+    config.script.forEach((scriptObj) => injectScriptTag(scriptObj));
   }
 }
 
@@ -115,7 +115,7 @@ export function applyHeadUpdates(): void {
  */
 function clearOldLeveloTags(): void {
   const elements = document.head.querySelectorAll('[data-levelo-head]');
-  elements.forEach(el => el.remove());
+  elements.forEach((el) => el.remove());
 }
 
 /**
@@ -125,7 +125,7 @@ function injectMetaTag(metaObj: HeadMeta): void {
   const element = document.createElement('meta');
   element.setAttribute('data-levelo-head', 'true');
 
-  Object.keys(metaObj).forEach(key => {
+  Object.keys(metaObj).forEach((key) => {
     const value = metaObj[key];
     if (value !== undefined && value !== null) {
       element.setAttribute(key, String(value));
@@ -144,7 +144,7 @@ function injectLinkTag(linkObj: HeadLink): void {
   const element = document.createElement('link');
   element.setAttribute('data-levelo-head', 'true');
 
-  Object.keys(linkObj).forEach(key => {
+  Object.keys(linkObj).forEach((key) => {
     const value = linkObj[key];
     if (value !== undefined && value !== null) {
       element.setAttribute(key, String(value));
@@ -163,7 +163,7 @@ function injectScriptTag(scriptObj: HeadScript): void {
   const element = document.createElement('script');
   element.setAttribute('data-levelo-head', 'true');
 
-  Object.keys(scriptObj).forEach(key => {
+  Object.keys(scriptObj).forEach((key) => {
     (element as any)[key] = scriptObj[key];
   });
 
@@ -183,7 +183,7 @@ function updateBaseTag(baseConfig: string | HeadBase): void {
   if (typeof baseConfig === 'string') {
     element.setAttribute('href', baseConfig);
   } else if (typeof baseConfig === 'object') {
-    Object.keys(baseConfig).forEach(key => {
+    Object.keys(baseConfig).forEach((key) => {
       const value = baseConfig[key];
       if (value !== undefined && value !== null) {
         element!.setAttribute(key, String(value));

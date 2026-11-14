@@ -4,11 +4,9 @@ import { leveloPlugin } from 'vite-plugin-levelojs';
 import leveloConfig from './levelo.config.js';
 
 export default defineConfig({
-  plugins: [
-    leveloPlugin()
-  ],
+  plugins: [leveloPlugin()],
   ...leveloConfig,
   server: {
-    port: 6262
+    port: 6262,
   },
 });

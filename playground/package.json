@@ -15,7 +15,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "levelojs": "workspace:*"
+    "levelojs": "workspace:*",
+    "levelo-cli": "workspace:*"
   },
   "devDependencies": {
     "@babel/plugin-syntax-jsx": "^8.0.1",

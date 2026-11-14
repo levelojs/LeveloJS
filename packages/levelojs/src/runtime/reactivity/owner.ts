@@ -43,7 +43,7 @@ export function disposeOwner(owner: Owner): void {
     try {
       fn();
     } catch (error) {
-      console.error("[Levelo] Error during cleanup:", error);
+      console.error('[Levelo] Error during cleanup:', error);
     }
   }
 }

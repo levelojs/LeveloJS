@@ -3,10 +3,13 @@
 import { effect } from '../reactivity/index.js';
 import type { JSX as LeveloJSX } from '../jsx/jsx.d.ts';
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const MATH_NS = "http://www.w3.org/1998/Math/MathML";
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
 
-export type TagType = keyof LeveloJSX["IntrinsicElements"] | ((props: any) => Element) | (string & {});
+export type TagType =
+  | keyof LeveloJSX['IntrinsicElements']
+  | ((props: any) => Element)
+  | (string & {});
 type lastAnchorType = Comment | Element;
 
 export function h(tag: TagType, props: Record<string, any> | null, ...children: any[]): Element {
@@ -29,10 +32,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
   }
 
   const namespace =
-    safeProps.__namespace ||
-    (tag === 'svg' ? SVG_NS :
-    tag === 'math' ? MATH_NS :
-    null);
+    safeProps.__namespace || (tag === 'svg' ? SVG_NS : tag === 'math' ? MATH_NS : null);
 
   if (namespace) {
     element = document.createElementNS(namespace, tag as any);
@@ -45,7 +45,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
 
     let targetKey = key;
 
-    if (key === "renderString") {
+    if (key === 'renderString') {
       element.innerHTML = String(value);
       return;
     }
@@ -59,7 +59,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
       return;
     }
 
-    if ((tag === 'input' || tag === "textarea" || tag === "select") && targetKey === 'value') {
+    if ((tag === 'input' || tag === 'textarea' || tag === 'select') && targetKey === 'value') {
       const inputElement = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
       const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);
 
@@ -67,14 +67,16 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
         effect(() => {
           let val = safeProps[key];
           if (typeof val === 'function') val = val();
-          inputElement.value = val !== false && val !== null && val !== undefined ? String(val) : '';
+          inputElement.value =
+            val !== false && val !== null && val !== undefined ? String(val) : '';
         });
       } else if (typeof value === 'function') {
         effect(() => {
           inputElement.value = String(value());
         });
       } else {
-        inputElement.value = value !== false && value !== null && value !== undefined ? String(value) : '';
+        inputElement.value =
+          value !== false && value !== null && value !== undefined ? String(value) : '';
       }
       return;
     }
@@ -88,7 +90,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
     if (namespace === SVG_NS) {
       const camelCaseExceptions = ['viewBox', 'gradientTransform', 'gradientUnits', 'patternUnits'];
       if (!camelCaseExceptions.includes(targetKey)) {
-        targetKey = targetKey.replace(/([A-Z])/g, "-$1").toLowerCase();
+        targetKey = targetKey.replace(/([A-Z])/g, '-$1').toLowerCase();
       }
     }
 
@@ -135,7 +137,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
 
       effect(() => {
         const res = child();
-        currentNodes.forEach(n => n.remove());
+        currentNodes.forEach((n) => n.remove());
         currentNodes = [];
 
         if (res === null || res === undefined || res === false) return;
@@ -145,7 +147,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
           currentNodes = [res];
         } else if (Array.isArray(res)) {
           let lastAnchor: lastAnchorType = anchor;
-          res.forEach(item => {
+          res.forEach((item) => {
             if (item === null || item === undefined || item === false) return;
             let nodeToInsert: Element | Text;
             if (item instanceof Element) {
@@ -166,7 +168,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
     } else if (child instanceof Element) {
       element.appendChild(child);
     } else if (Array.isArray(child)) {
-      child.forEach(item => {
+      child.forEach((item) => {
         processChildNode(item, parentNamespace);
       });
     } else {
@@ -174,7 +176,7 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
     }
   };
 
-  children.forEach(child => {
+  children.forEach((child) => {
     processChildNode(child, namespace);
   });
 

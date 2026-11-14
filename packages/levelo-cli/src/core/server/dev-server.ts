@@ -18,6 +18,16 @@ interface DevServerOptions {
   port?: number;
 }
 
+const LAUNCH_CANDIDATES = ['launch.tsx', 'launch.jsx', 'launch.ts', 'launch.js'];
+function resolveLaunchEntry(rootDir: string): string {
+  for (const file of LAUNCH_CANDIDATES) {
+    if (fsSync.existsSync(path.join(rootDir, file))) {
+      return `/${file}`;
+    }
+  }
+  return '/launch.tsx';
+}
+
 const MIME_TYPES: Record<string, string> = {
   '.js': 'text/javascript',
   '.mjs': 'text/javascript',
@@ -33,7 +43,6 @@ const MIME_TYPES: Record<string, string> = {
   '.ico': 'image/x-icon',
 };
 
-// Client script that connects to Levelo WebSocket server
 // Client script that connects to Levelo WebSocket server
 const WS_CLIENT_SCRIPT = `
 <script>
@@ -54,68 +63,30 @@ const WS_CLIENT_SCRIPT = `
 </script>
 `;
 
-// =========================================================
-// Config Loader & Virtual HTML Generator
-// =========================================================
-async function getFreshAppConfig(rootDir: string) {
-  const tsConfig = path.join(rootDir, 'app.config.ts');
-  const jsConfig = path.join(rootDir, 'app.config.js');
-  const configPath = fsSync.existsSync(tsConfig) ? tsConfig : jsConfig;
-  if (!fsSync.existsSync(configPath)) {
-    return { name: 'LeveloJS App', web: { title: 'LeveloJS App' } };
-  }
-
-  try {
-    const result = await esbuild.build({
-      entryPoints: [configPath],
-      bundle: true,
-      write: false,
-      format: 'esm',
-      platform: 'node',
-    });
-    const code = result.outputFiles[0].text;
-    const base64 = Buffer.from(code).toString('base64');
-    const module = await import(`data:text/javascript;base64,${base64}`);
-    return module.default || module;
-  } catch (err: any) {
-    console.error(pc.red(`[Levelo Config Error]: ${err.message}`));
-    return { name: 'LeveloJS App', web: { title: 'LeveloJS App' } };
-  }
-}
-
-function generateVirtualHtml(config: any): string {
-  const web = config.web || {};
-  const title = web.title || config.name || 'LeveloJS App';
-  const lang = web.lang || 'en';
-  const icon = config.icon ? `<link rel="icon" href="${config.icon}" />` : '';
-
-  const metaTags = (web.meta || [])
-    .map((m: any) => {
-      if (m.name) return `<meta name="${m.name}" content="${m.content}" />`;
-      if (m.property) return `<meta property="${m.property}" content="${m.content}" />`;
-      return '';
-    })
-    .filter(Boolean)
-    .join('\n    ');
-
-  const linkTags = (web.links || [])
-    .map((l: any) => `<link rel="${l.rel}" href="${l.href}" ${l.type ? `type="${l.type}"` : ''} />`)
-    .join('\n    ');
-
+// Minimal bootstrap HTML shell that mounts /launch.tsx
+function generateBootstrapHtml(rootDir: string): string {
+  const launchSrc = resolveLaunchEntry(rootDir);
   return `<!doctype html>
-<html lang="${lang}">
+<html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    ${icon}
-    <title>${title}</title>
-    ${metaTags}
-    ${linkTags}
+    ${WS_CLIENT_SCRIPT}
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    ${WS_CLIENT_SCRIPT}
+    <script
+      type="module"
+      src="${launchSrc}"
+      onerror="console.error('[Levelo] Failed to load ${launchSrc}. Make sure ${launchSrc} exists at the project root.')"
+    ></script>
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          if (!window.__LEVELO_MOUNTED__) {
+            console.warn('[Levelo] Application did not mount. Ensure launch(() => <html>...</html>) is called in ${launchSrc}');
+          }
+        }, 300);
+      });
+    </script>
   </body>
 </html>`;
 }
@@ -130,24 +101,14 @@ export async function startDevServer(options: DevServerOptions = {}) {
 
   const server = http.createServer(async (req, res) => {
     let reqPath = (req.url || '/').split('?')[0];
-
-    // Serve Virtual HTML on root request (Zero-HTML Architecture)
-    if (reqPath === '/' || reqPath === '/index.html') {
-      try {
-        const config = await getFreshAppConfig(rootDir);
-        const html = generateVirtualHtml(config);
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-        return;
-      } catch (err: any) {
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end(`Internal Server Error: ${err.message}`);
-        return;
-      }
-    }
-
     const ext = path.extname(reqPath).toLowerCase();
+
+    // Serve minimal bootstrap HTML on root request
+    if (reqPath === '/' || reqPath === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(generateBootstrapHtml(rootDir));
+      return;
+    }
 
     // Dynamic compile & bundle on-the-fly for script files (Resolves "levelojs" bare specifiers)
     if (ext === '.ts' || ext === '.tsx' || ext === '.jsx' || ext === '.js') {
@@ -176,23 +137,30 @@ export async function startDevServer(options: DevServerOptions = {}) {
       }
     }
 
-    // Static asset serving (root or public/ folder)
-    const candidates = [path.join(rootDir, reqPath), path.join(rootDir, 'public', reqPath)];
+    // Static asset serving (root or public/ folder) when file extension is present
+    if (ext) {
+      const candidates = [path.join(rootDir, reqPath), path.join(rootDir, 'public', reqPath)];
 
-    for (const filePath of candidates) {
-      try {
-        const data = await fs.readFile(filePath);
-        const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(data);
-        return;
-      } catch {
-        // Continue checking next candidate
+      for (const filePath of candidates) {
+        try {
+          const data = await fs.readFile(filePath);
+          const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+          res.writeHead(200, { 'Content-Type': contentType });
+          res.end(data);
+          return;
+        } catch {
+          // Continue checking next candidate
+        }
       }
+
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end(`File not found: ${reqPath}`);
+      return;
     }
 
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end(`File not found: ${reqPath}`);
+    // SPA History Fallback for extensionless routes (e.g., /about, /user/42)
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(generateBootstrapHtml(rootDir));
   });
 
   // WebSocket Server on the same HTTP instance
@@ -246,9 +214,21 @@ export async function startDevServer(options: DevServerOptions = {}) {
     });
   }
 
+  // Watch launch.tsx
+  const activeLaunchFile = LAUNCH_CANDIDATES.find((file) =>
+    fsSync.existsSync(path.join(rootDir, file)),
+  );
+  let launchWatcher: fsSync.FSWatcher | null = null;
+  if (activeLaunchFile) {
+    launchWatcher = fsSync.watch(path.join(rootDir, activeLaunchFile), () => {
+      triggerReload(activeLaunchFile);
+    });
+  }
+
   server.on('close', () => {
     srcWatcher?.close();
     configWatcher?.close();
+    launchWatcher?.close();
   });
 
   server.listen(port, () => {

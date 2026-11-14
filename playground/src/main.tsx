@@ -1,4 +1,4 @@
-import { launch } from "levelojs";
+import { render } from "levelojs";
 import { App } from "./App";
 
-launch(App);
+render(App, (document.getElementById('app') as HTMLElement));

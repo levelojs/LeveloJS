@@ -51,6 +51,13 @@ export interface HeadConfig {
   [key: string]: any;
 }
 
+// main/original title (synced from launch.tsx or initial HTML)
+export let DEFAULT_PAGE_TITLE = typeof document !== 'undefined' ? document.title : '';
+
+export function setDefaultPageTitle(title: string): void {
+  DEFAULT_PAGE_TITLE = title;
+}
+
 /**
  * Directly updates the document head with the provided configuration.
  * Can be called safely inside components on every render cycle.
@@ -190,4 +197,10 @@ function updateBaseTag(baseConfig: string | HeadBase): void {
       }
     });
   }
+}
+
+// if home page dosn't have any title then reset it to default or main or original title (from index.html)
+export function resetHeadToDefault() {
+  clearOldLeveloTags();
+  document.title = DEFAULT_PAGE_TITLE;
 }

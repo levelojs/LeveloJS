@@ -5,7 +5,7 @@ export { launch } from './launch.js';
 // config
 export { defineConfig, type LeveloConfig, type WebConfig, type NativeConfig } from './config.js';
 
-export { Pages, Page, navigate } from './runtime/router.js';
+export { Pages, Page, navigate, params } from './router/index.js';
 
 export { style } from './styles/index.js';
 export {

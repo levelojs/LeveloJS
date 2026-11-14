@@ -137,7 +137,7 @@ Both follow the same syntax as Vite's `createFilter`.
 
 MIT
 
-```
+````
 
 That's the full file, top to bottom. Save it over the current `README.md` in `packages/vite-plugin-levelojs/`.
 
@@ -151,3 +151,4 @@ Then pick a direction:
 - **B** — Design 2 routing
 - **C** — Pivot to Rust
 - **D** — Docs and templates cleanup```
+````

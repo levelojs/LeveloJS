@@ -1,6 +1,6 @@
 import cac from 'cac';
 import pc from 'picocolors';
-import { runDevCommand, runBuildCommand } from './commands/run.js';
+import { runDevCommand, runBuildCommand, runPreviewCommand } from './commands/run.js';
 
 const cli = cac('levelo');
 
@@ -29,6 +29,18 @@ cli
   .action(async (options) => {
     try {
       await runBuildCommand(options);
+    } catch (err: any) {
+      console.error(pc.red(`\n[Levelo CLI Error]: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+cli
+  .command('preview', 'Preview production web build locally')
+  .option('--port <port>', 'Preview server port')
+  .action(async (options) => {
+    try {
+      await runPreviewCommand(options);
     } catch (err: any) {
       console.error(pc.red(`\n[Levelo CLI Error]: ${err.message}\n`));
       process.exit(1);

@@ -10,7 +10,7 @@ export async function buildNativeBundle(
   platform: TargetPlatform = 'windows',
 ): Promise<string> {
   const entryPoint = path.join(rootDir, 'src', 'main.tsx');
-  const outDir = path.join(rootDir, 'dist-native');
+  const outDir = path.join(rootDir, 'output', 'native', platform);
   const outFile = path.join(outDir, 'bundle.js');
 
   await fs.mkdir(outDir, { recursive: true });

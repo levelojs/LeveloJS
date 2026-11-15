@@ -4,7 +4,12 @@ import type { Plugin } from 'esbuild';
 import { readFile } from 'node:fs/promises';
 import { transformLeveloCode } from '../compiler/babel.js';
 
-export function leveloWebPlugin(rootDir: string = process.cwd()): Plugin {
+export interface LeveloWebPluginOptions {
+  isProduction?: boolean;
+}
+
+export function leveloWebPlugin(rootDir: string = process.cwd(), options: LeveloWebPluginOptions = {}): Plugin {
+  const { isProduction = false } = options;
   return {
     name: 'levelo-web-plugin',
     setup(build) {
@@ -51,23 +56,25 @@ export function leveloWebPlugin(rootDir: string = process.cwd()): Plugin {
         }
       });
 
-      // Intercept CSS files and dynamically inject them into the DOM <head>
-      build.onLoad({ filter: /\.css$/ }, async (args) => {
-        const cssContent = await readFile(args.path, 'utf8');
-        // Convert CSS into an in-memory JS snippet that auto-injects into DOM
-        const jsInjector = `
-          (() => {
-            const style = document.createElement('style');
-            style.setAttribute('data-levelo-path', ${JSON.stringify(args.path)});
-            style.textContent = ${JSON.stringify(cssContent)};
-            document.head.appendChild(style);
-          })();
-        `;
-        return {
-          contents: jsInjector,
-          loader: 'js',
-        };
-      });
+      // In development, inject CSS dynamically into DOM <head>.
+      // In production, let esbuild bundle & extract separate minified .css files.
+      if (!isProduction) {
+        build.onLoad({ filter: /\.css$/ }, async (args) => {
+          const cssContent = await readFile(args.path, 'utf8');
+          const jsInjector = `
+            (() => {
+              const style = document.createElement('style');
+              style.setAttribute('data-levelo-path', ${JSON.stringify(args.path)});
+              style.textContent = ${JSON.stringify(cssContent)};
+              document.head.appendChild(style);
+            })();
+          `;
+          return {
+            contents: jsInjector,
+            loader: 'js',
+          };
+        });
+      }
     },
   };
 }

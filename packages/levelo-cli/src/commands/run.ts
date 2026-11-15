@@ -3,7 +3,9 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import pc from 'picocolors';
 import { startDevServer } from '../core/server/dev-server.js';
+import { buildWebBundle } from '../core/bundler/web-bundler.js';
 import { buildNativeBundle } from '../core/bundler/native-bundler.js';
+import { startPreviewServer } from '../core/server/preview-server.js';
 
 interface CommandOptions {
   platform: 'windows' | 'web' | 'android';
@@ -46,10 +48,20 @@ export async function runBuildCommand(options: CommandOptions): Promise<void> {
   const platform = options.platform || 'web';
   const projectRoot = process.cwd();
 
-  if (platform === 'windows') {
+  if (platform === 'web') {
+    console.log(`\n📦 Compiling LeveloJS Web Bundle...\n`);
+    await buildWebBundle(projectRoot);
+  } else if (platform === 'windows') {
     console.log(pc.bold(`\n📦 Compiling LeveloJS Windows Native Bundle...\n`));
     await buildNativeBundle(projectRoot);
   } else {
-    console.log(pc.cyan(`\n📦 Building Web target: You can use your bundler or Vite pipeline.\n`));
+    console.log(pc.yellow(`\\n⚠ ${platform} platform build is coming soon!\n`));
   }
+}
+
+export async function runPreviewCommand(options: { port?: number }): Promise<void> {
+  await startPreviewServer({
+    cwd: process.cwd(),
+    ...(options.port ? { port: Number(options.port) } : {}),
+  });
 }

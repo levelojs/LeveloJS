@@ -1,12 +1,13 @@
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import fsSync from 'node:fs';
 import esbuild from 'esbuild';
 import pc from 'picocolors';
 import { WebSocketServer, WebSocket } from 'ws';
 import { leveloWebPlugin } from '../plugins/web-plugin.js';
+import { MIME_TYPES } from '../../utils/mime-types.js';
+import { loadLeveloConfig } from '../../utils/config-loader.js';
 
 // LeveloJS Violet theme brand color (#7C6BF6)
 const brandColor = (str: string) => `\x1b[38;2;124;107;246m${str}\x1b[0m`;
@@ -27,21 +28,6 @@ function resolveLaunchEntry(rootDir: string): string {
   }
   return '/launch.tsx';
 }
-
-const MIME_TYPES: Record<string, string> = {
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.ts': 'text/javascript',
-  '.tsx': 'text/javascript',
-  '.jsx': 'text/javascript',
-  '.css': 'text/css',
-  '.html': 'text/html',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.ico': 'image/x-icon',
-};
 
 // Client script that connects to Levelo WebSocket server
 const WS_CLIENT_SCRIPT = `
@@ -97,7 +83,8 @@ function generateBootstrapHtml(rootDir: string): string {
 export async function startDevServer(options: DevServerOptions = {}) {
   const startTime = performance.now();
   const rootDir = options.cwd || process.cwd();
-  const port = options.port || 6262;
+  const config = await loadLeveloConfig(rootDir);
+  const port = options.port || config.web?.port || 6262;
 
   const server = http.createServer(async (req, res) => {
     let reqPath = (req.url || '/').split('?')[0];

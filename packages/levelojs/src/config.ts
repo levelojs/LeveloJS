@@ -1,30 +1,13 @@
 // packages/levelojs/src/config.ts
 
-// =========================================================
-// =========================================================
 // web app config ==========================================
-export interface WebMetaTag {
-  name?: string;
-  property?: string;
-  content: string;
-}
-
-export interface WebLinkTag {
-  rel: string;
-  href: string;
-  type?: string;
-}
-
 export interface WebConfig {
-  title?: string;
-  lang?: string;
-  icon?: string;
-  meta?: WebMetaTag[];
-  links?: WebLinkTag[];
+  outDir?: string;
+  minify?: boolean;
+  sourcemap?: boolean;
+  port?: number;
 }
 
-// =====================================================
-// =====================================================
 // Native app config ===================================
 export interface NativeWindowConfig {
   title?: string;
@@ -42,8 +25,6 @@ export interface NativeConfig {
   window?: NativeWindowConfig;
 }
 
-// ========================================================
-// ========================================================
 // ========================================================
 export interface LeveloConfig {
   name?: string;

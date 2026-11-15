@@ -3,3 +3,5 @@ dist/
 
 windows/release
 dist-native
+
+output/

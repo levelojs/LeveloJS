@@ -1,9 +1,9 @@
 // src/router/Page.ts - Optimized Enterprise Routing Engine for Levelo JS (Version 2.0.0 Specs)
-import { h } from '../runtime/web/jsx-runtime.js';
-import { applyHeadUpdates } from '../runtime/head.js';
+
+import { applyHeadUpdates, resetHeadToDefault } from '../runtime/head.js';
 import { getClean404Component } from '../runtime/templates/error404.js';
+import { h } from '../runtime/web/jsx-runtime.js';
 import { setParams } from './params.js';
-import { resetHeadToDefault } from '../runtime/head.js';
 
 interface RouteDefinition {
   path: string;
@@ -23,7 +23,7 @@ const routeListeners = new Set<(path: string) => void>();
  */
 function parseRoutePattern(path: string): { regex: RegExp; keys: string[] } {
   const keys: string[] = [];
-  const pattern = path.replace(/\/+$/, '').replace(/:([^\/]+)/g, (_, key) => {
+  const pattern = path.replace(/\/+$/, '').replace(/:([^/]+)/g, (_, key) => {
     keys.push(key);
     return '([^/]+)';
   });

@@ -1,6 +1,7 @@
 //reactivity/index.ts
-export { state, effect } from './reactivity';
-export { computed } from './computed';
-export { activeOwner, setOwner, runWithOwner } from './owner';
-export { mount, cleanup } from './lifecycle';
+
 export { batch } from './batch';
+export { computed } from './computed';
+export { cleanup, mount } from './lifecycle';
+export { activeOwner, runWithOwner, setOwner } from './owner';
+export { effect, state } from './reactivity';

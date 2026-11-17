@@ -1,7 +1,8 @@
 // packages/levelojs/src/runtime/native/jsx-runtime.ts
-import { NativeEmitter } from './emitter.js';
+
 import { effect } from '../reactivity/reactivity.js';
-import { NativeOpCode, NativeNodeHandle } from './types.js';
+import { NativeEmitter } from './emitter.js';
+import { NativeNodeHandle, NativeOpCode } from './types.js';
 
 export { NativeNodeHandle };
 

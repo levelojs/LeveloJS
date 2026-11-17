@@ -1,8 +1,8 @@
 export interface ResolvedLeveloConfig {
-    web?: {
-        outDir?: string;
-        minify?: boolean;
-        sourcemap?: boolean;
-        port?: number;
-    };
+  web?: {
+    outDir?: string;
+    minify?: boolean;
+    sourcemap?: boolean;
+    port?: number;
+  };
 }

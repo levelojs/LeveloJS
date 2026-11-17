@@ -1,8 +1,8 @@
-import * as babel from '@babel/core';
 import type { NodePath } from '@babel/core';
-import * as t from '@babel/types';
+import * as babel from '@babel/core';
 import syntaxJsx from '@babel/plugin-syntax-jsx';
 import transformTypescript from '@babel/plugin-transform-typescript';
+import type * as t from '@babel/types';
 
 export type TargetPlatform = 'web' | 'native' | 'windows' | 'android';
 

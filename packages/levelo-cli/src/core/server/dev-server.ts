@@ -1,13 +1,13 @@
-import http from 'node:http';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import fsSync from 'node:fs';
+import fs from 'node:fs/promises';
+import http from 'node:http';
+import path from 'node:path';
 import esbuild from 'esbuild';
 import pc from 'picocolors';
-import { WebSocketServer, WebSocket } from 'ws';
-import { leveloWebPlugin } from '../plugins/web-plugin.js';
-import { MIME_TYPES } from '../../utils/mime-types.js';
+import { WebSocket, WebSocketServer } from 'ws';
 import { loadLeveloConfig } from '../../utils/config-loader.js';
+import { MIME_TYPES } from '../../utils/mime-types.js';
+import { leveloWebPlugin } from '../plugins/web-plugin.js';
 
 // LeveloJS Violet theme brand color (#7C6BF6)
 const brandColor = (str: string) => `\x1b[38;2;124;107;246m${str}\x1b[0m`;
@@ -87,7 +87,7 @@ export async function startDevServer(options: DevServerOptions = {}) {
   const port = options.port || config.web?.port || 6262;
 
   const server = http.createServer(async (req, res) => {
-    let reqPath = (req.url || '/').split('?')[0];
+    const reqPath = (req.url || '/').split('?')[0];
     const ext = path.extname(reqPath).toLowerCase();
 
     // Serve minimal bootstrap HTML on root request

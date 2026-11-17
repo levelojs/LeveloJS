@@ -1,14 +1,17 @@
 import fsSync from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Plugin } from 'esbuild';
-import { readFile } from 'node:fs/promises';
 import { transformLeveloCode } from '../compiler/babel.js';
 
 export interface LeveloWebPluginOptions {
   isProduction?: boolean;
 }
 
-export function leveloWebPlugin(rootDir: string = process.cwd(), options: LeveloWebPluginOptions = {}): Plugin {
+export function leveloWebPlugin(
+  rootDir: string = process.cwd(),
+  options: LeveloWebPluginOptions = {},
+): Plugin {
   const { isProduction = false } = options;
   return {
     name: 'levelo-web-plugin',

@@ -1,12 +1,13 @@
 // packages/levelo-cli/src/core/server/preview-server.ts
-import http from 'node:http';
-import fs from 'node:fs/promises';
+
 import fsSync from 'node:fs';
+import fs from 'node:fs/promises';
+import http from 'node:http';
 import path from 'node:path';
 import pc from 'picocolors';
+import { brandBadge } from '../../utils/brand-tag.js';
 import { loadLeveloConfig } from '../../utils/config-loader.js';
 import { MIME_TYPES } from '../../utils/mime-types.js';
-import { brandBadge } from '../../utils/brand-tag.js';
 
 interface PreviewServerOptions {
   cwd?: string;
@@ -30,7 +31,7 @@ export async function startPreviewServer(options: PreviewServerOptions = {}) {
 
   const server = http.createServer(async (req, res) => {
     const reqPath = (req.url || '/').split('?')[0];
-    const safePath = path.normalize(reqPath).replace(/^(\.\.[\/\\])+/, '');
+    const safePath = path.normalize(reqPath).replace(/^(\.\.[/\\])+/, '');
     const ext = path.extname(safePath).toLowerCase();
 
     const targetFile =

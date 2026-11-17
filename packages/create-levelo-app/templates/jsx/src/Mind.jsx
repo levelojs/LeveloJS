@@ -44,10 +44,10 @@ function Mind() {
           <span class="version-badge">v{version()}</span>
         </div>
         <nav class="nav-links">
-          <a href="https://levelojs.motionmind.me" target="_blank">
+          <a href="https://levelojs.motionmind.me" target="_blank" rel="noopener">
             Docs
           </a>
-          <a href="https://github.com/MotionMind2007/Levelo-Js" target="_blank">
+          <a href="https://github.com/MotionMind2007/Levelo-Js" target="_blank" rel="noopener">
             GitHub
           </a>
         </nav>
@@ -69,7 +69,12 @@ function Mind() {
             <div class="tagline-badges">LIGHTWEIGHT • ULTRA REACTIVE • DEVELOPER FIRST</div>
 
             <div class="action-group">
-              <a href="https://levelojs.motionmind.me" target="_blank" class="btn-primary">
+              <a
+                href="https://levelojs.motionmind.me"
+                target="_blank"
+                class="btn-primary"
+                rel="noopener"
+              >
                 Start Building ➔
               </a>
             </div>

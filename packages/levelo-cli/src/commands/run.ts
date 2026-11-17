@@ -1,10 +1,11 @@
 // packages/levelo-cli/src/commands/run.ts
-import path from 'node:path';
+
 import { spawn } from 'node:child_process';
+import path from 'node:path';
 import pc from 'picocolors';
-import { startDevServer } from '../core/server/dev-server.js';
-import { buildWebBundle } from '../core/bundler/web-bundler.js';
 import { buildNativeBundle } from '../core/bundler/native-bundler.js';
+import { buildWebBundle } from '../core/bundler/web-bundler.js';
+import { startDevServer } from '../core/server/dev-server.js';
 import { startPreviewServer } from '../core/server/preview-server.js';
 
 interface CommandOptions {

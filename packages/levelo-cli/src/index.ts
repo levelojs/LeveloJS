@@ -1,6 +1,6 @@
 import cac from 'cac';
 import pc from 'picocolors';
-import { runDevCommand, runBuildCommand, runPreviewCommand } from './commands/run.js';
+import { runBuildCommand, runDevCommand, runPreviewCommand } from './commands/run.js';
 
 const cli = cac('levelo');
 

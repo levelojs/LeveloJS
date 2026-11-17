@@ -1,13 +1,15 @@
 // packages/levelo-cli/src/core/bundler/native-bundler.ts
-import esbuild from 'esbuild';
-import path from 'node:path';
+
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import esbuild from 'esbuild';
 import pc from 'picocolors';
-import { transformLeveloCode, type TargetPlatform } from '../compiler/babel.js';
+import { type TargetPlatform, transformLeveloCode } from '../compiler/babel.js';
 
 export async function buildNativeBundle(
   rootDir: string = process.cwd(),
   platform: TargetPlatform = 'windows',
+  isProduction: boolean = false,
 ): Promise<string> {
   const entryPoint = path.join(rootDir, 'src', 'main.tsx');
   const outDir = path.join(rootDir, 'output', 'native', platform);
@@ -27,6 +29,9 @@ export async function buildNativeBundle(
       target: 'es2022',
       sourcemap: false,
       minify: false,
+      define: {
+        'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
+      },
       // Resolve "levelojs" through the "native" condition in package.json exports
       conditions: ['native', 'import', 'default'],
       // neutral platform has no default main fields, so set them explicitly

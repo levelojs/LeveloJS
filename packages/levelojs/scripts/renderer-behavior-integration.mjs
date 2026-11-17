@@ -1,9 +1,9 @@
 import {
   DefaultRenderer,
-  InternalRenderNode,
-  RenderTree,
-  OperationType,
   h,
+  InternalRenderNode,
+  OperationType,
+  RenderTree,
   state,
 } from '../dist/index.js';
 

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { state, effect } from './reactivity.js';
-import { computed } from './computed.js';
+import { describe, expect, it } from 'vitest';
 import { batch } from './batch.js';
+import { computed } from './computed.js';
+import { effect, state } from './reactivity.js';
 
 describe('state', () => {
   it('returns the initial value from the getter', () => {
@@ -54,7 +54,7 @@ describe('effect', () => {
 
   it('re-runs when a tracked signal changes', () => {
     const [get, set] = state(0);
-    let seen: number[] = [];
+    const seen: number[] = [];
 
     effect(() => {
       seen.push(get());

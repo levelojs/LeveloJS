@@ -1,5 +1,5 @@
 // packages/levelojs/src/runtime/native/emitter.ts
-import { NativeCommand } from './types.js';
+import type { NativeCommand } from './types.js';
 
 export class NativeEmitter {
   private static buffer: NativeCommand[] = [];

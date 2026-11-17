@@ -1,13 +1,11 @@
 // index.ts - Node-Isolated Levelo JS Compiler Plugin
 // CommonJS format mirroring vite-plugin-solid
 
-import { createFilter, FilterPattern, Plugin } from 'vite';
-
-import babel, { PluginObj, NodePath } from '@babel/core';
-import * as t from '@babel/types';
-
+import babel, { type NodePath, type PluginObj } from '@babel/core';
 import syntaxJsx from '@babel/plugin-syntax-jsx';
 import transformTypescript from '@babel/plugin-transform-typescript';
+import type * as t from '@babel/types';
+import { createFilter, type FilterPattern, type Plugin } from 'vite';
 
 interface LeveloPluginOptions {
   include?: FilterPattern;

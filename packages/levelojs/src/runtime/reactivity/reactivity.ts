@@ -1,5 +1,5 @@
-import { setOwner, Owner } from './owner.js';
 import { isBatching, queue } from './batch.js';
+import { type Owner, setOwner } from './owner.js';
 
 type Subscriber = () => void;
 type Dependency = Set<Subscriber>;

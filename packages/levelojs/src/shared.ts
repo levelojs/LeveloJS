@@ -13,10 +13,6 @@ export { launch } from './launch.js';
 
 // router
 export { navigate, Page, Pages, params } from './router/index.js';
-
-// style
-export { style } from './styles/index.js';
-
 // reactivity
 export {
   batch,
@@ -26,6 +22,8 @@ export {
   mount,
   state,
 } from './runtime/reactivity/index.js';
+// style
+export { style } from './styles/index.js';
 
 // types
 export type { CSSProperties, JSX, Reactive } from './types/jsx.js';

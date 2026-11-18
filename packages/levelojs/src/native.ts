@@ -1,3 +1,5 @@
+// packages/levelojs/src/native.ts
+
 import { unsupported } from './runtime/native/unsupported.js';
 
 //
@@ -6,6 +8,8 @@ import { unsupported } from './runtime/native/unsupported.js';
 export * from './runtime/native/index.js';
 // common exports
 export * from './shared.js';
+export { style } from './styles/native.js';
+
 export const head = unsupported<typeof import('./runtime/head.js').head>('head');
 export const render = unsupported<typeof import('./runtime/web/dom.js').render>('render');
 export const unmount = unsupported<typeof import('./runtime/web/dom.js').unmount>('unmount');

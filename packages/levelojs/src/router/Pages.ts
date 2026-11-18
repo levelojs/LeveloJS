@@ -1,4 +1,4 @@
-// src/router/Page.ts - Optimized Enterprise Routing Engine for Levelo JS (Version 2.0.0 Specs)
+// src/router/Pages.ts - Optimized Enterprise Routing Engine for Levelo JS (Version 2.0.0 Specs)
 
 import { applyHeadUpdates, resetHeadToDefault } from '../runtime/head.js';
 import { getClean404Component } from '../runtime/templates/error404.js';

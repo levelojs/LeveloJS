@@ -1,5 +1,6 @@
 // packages/levelojs/src/runtime/native/jsx-runtime.ts
 
+import { isNativeStyleToken, type NativeStyleToken } from '../../styles/native.js';
 import { effect } from '../reactivity/reactivity.js';
 import { NativeEmitter } from './emitter.js';
 import { NativeNodeHandle, NativeOpCode } from './types.js';
@@ -13,7 +14,19 @@ function toKebabCase(str: string): string {
   return str.replace(/[A-Z]/g, (match) => `-${match.toLocaleLowerCase()}`);
 }
 
-function render(
+function emitNativeStyleToken(nodeId: number, token: NativeStyleToken) {
+  for (const [propName, propVal] of token.__nativeStyles) {
+    NativeEmitter.emit({
+      op: 'SetStyle',
+      opcode: NativeOpCode.SetStyle,
+      node: nodeId,
+      name: propName,
+      value: propVal,
+    });
+  }
+}
+
+function buildNode(
   type: string | Function,
   props: Record<string, any> | null,
   children: any[],
@@ -49,31 +62,71 @@ function render(
           listener_id: listenerId,
         });
       }
+      // Class / className handling (supports pre-compiled NativeStyleToken from style())
+      else if (key === 'class' || key === 'className') {
+        if (isNativeStyleToken(value)) {
+          emitNativeStyleToken(id, value);
+          NativeEmitter.emit({
+            op: 'SetProperty',
+            opcode: NativeOpCode.SetProperty,
+            node: id,
+            name: 'class',
+            value: value.toString(),
+          });
+        } else if (typeof value === 'function') {
+          effect(() => {
+            const resolvedVal = (value as Function)();
+            if (isNativeStyleToken(resolvedVal)) {
+              emitNativeStyleToken(id, resolvedVal);
+            } else {
+              NativeEmitter.emit({
+                op: 'SetProperty',
+                opcode: NativeOpCode.SetProperty,
+                node: id,
+                name: 'class',
+                value: String(resolvedVal ?? ''),
+              });
+            }
+          });
+        } else {
+          NativeEmitter.emit({
+            op: 'SetProperty',
+            opcode: NativeOpCode.SetProperty,
+            node: id,
+            name: 'class',
+            value: String(value),
+          });
+        }
+      }
       // Style object handling
       else if (key === 'style' && typeof value === 'object') {
-        for (const [sKey, sVal] of Object.entries(value)) {
-          if (sVal === null || sVal === undefined) continue;
-          const kebabKey = toKebabCase(sKey);
+        if (isNativeStyleToken(value)) {
+          emitNativeStyleToken(id, value);
+        } else {
+          for (const [sKey, sVal] of Object.entries(value)) {
+            if (sVal === null || sVal === undefined) continue;
+            const kebabKey = toKebabCase(sKey);
 
-          if (typeof sVal === 'function') {
-            effect(() => {
-              const resolvedVal = (sVal as Function)();
+            if (typeof sVal === 'function') {
+              effect(() => {
+                const resolvedVal = (sVal as Function)();
+                NativeEmitter.emit({
+                  op: 'SetStyle',
+                  opcode: NativeOpCode.SetStyle,
+                  node: id,
+                  name: kebabKey,
+                  value: String(resolvedVal ?? ''),
+                });
+              });
+            } else {
               NativeEmitter.emit({
                 op: 'SetStyle',
                 opcode: NativeOpCode.SetStyle,
                 node: id,
                 name: kebabKey,
-                value: String(resolvedVal ?? ''),
+                value: String(sVal),
               });
-            });
-          } else {
-            NativeEmitter.emit({
-              op: 'SetStyle',
-              opcode: NativeOpCode.SetStyle,
-              node: id,
-              name: kebabKey,
-              value: String(sVal),
-            });
+            }
           }
         }
       }
@@ -214,13 +267,13 @@ function render(
 
 export function jsx(type: string | Function, props: Record<string, any> | null, _key?: any) {
   const { children, ...rest } = props ?? {};
-  return render(type, rest, children === undefined ? [] : [children]);
+  return buildNode(type, rest, children === undefined ? [] : [children]);
 }
 
 export { jsx as jsxs };
 
 export function h(type: string | Function, props: Record<string, any> | null, ...children: any[]) {
-  return render(type, props, children);
+  return buildNode(type, props, children);
 }
 
 export const Fragment = (props: { children?: any }) => props.children;

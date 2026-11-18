@@ -1,3 +1,5 @@
+// packages/levelojs/src/shared.ts
+
 // Common export
 
 // config
@@ -22,8 +24,6 @@ export {
   mount,
   state,
 } from './runtime/reactivity/index.js';
-// style
-export { style } from './styles/index.js';
 
 // types
 export type { CSSProperties, JSX, Reactive } from './types/jsx.js';

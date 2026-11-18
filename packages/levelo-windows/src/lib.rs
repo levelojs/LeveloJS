@@ -232,10 +232,10 @@ pub fn run_engine(title: &str, width: i32, height: i32) -> Result<()> {
 
         // 2. Load bundle.js into memory
         let bundle_candidates = [
-            "../dist-native/bundle.js",
-            "../../playground/dist-native/bundle.js",
-            "playground/dist-native/bundle.js",
-            "dist-native/bundle.js",
+            "../output/native/windows/bundle.js",
+            "../../playground/output/native/windows/bundle.js",
+            "playground/output/native/windows/bundle.js",
+            "output/native/windows/bundle.js",
             "bundle.js",
         ];
 

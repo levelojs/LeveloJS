@@ -1,19 +1,101 @@
 import {
   Fragment,
-  Page,
-  Pages,
   batch,
   cleanup,
   computed,
   effect,
   head,
   mount,
-  navigate,
   state,
   style,
 } from "levelojs";
-import "./App.css";
-import logo from '/levelojs.svg';
+import logo from "/levelojs.svg";
+
+// Shared component styles compiled via LeveloJS style() API
+// Works identically on Web (DOM CSS injection) and Native (Zero-overhead SetStyle commands)
+const styles = style({
+  container: {
+    backgroundColor: "#090d16",
+    color: "#f8fafc",
+    padding: "24px",
+    minHeight: "100vh",
+    fontFamily: "sans-serif",
+  },
+  card: {
+    backgroundColor: "#111827",
+    border: "1px solid #1f2937",
+    borderRadius: "12px",
+    padding: "20px",
+    marginBottom: "18px",
+  },
+  badge: {
+    backgroundColor: "#312e81",
+    color: "#a5b4fc",
+    padding: "4px 10px",
+    borderRadius: "999px",
+    fontSize: "12px",
+  },
+  title: {
+    marginTop: "10px",
+    marginBottom: "6px",
+    fontSize: "24px",
+    color: "#ffffff",
+  },
+  sectionTitle: {
+    fontSize: "18px",
+    marginBottom: "12px",
+    color: "#e2e8f0",
+  },
+  mutedText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+  },
+  row: {
+    display: "flex",
+    gap: "14px",
+    marginTop: "12px",
+    marginBottom: "12px",
+  },
+  btnPrimary: {
+    backgroundColor: "#4f46e5",
+    color: "#ffffff",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    fontSize: "14px",
+  },
+  btnSecondary: {
+    backgroundColor: "#1e293b",
+    color: "#e2e8f0",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    fontSize: "14px",
+  },
+  lifecycleBox: {
+    padding: "14px",
+    backgroundColor: "#0f172a",
+    border: "1px solid #1e293b",
+    borderRadius: "8px",
+    marginTop: "12px",
+  },
+  customBox: {
+    backgroundColor: "#1e1b4b",
+    border: "1px solid #6366f1",
+    padding: "14px",
+    borderRadius: "8px",
+    marginTop: "100px",
+    color: "#c7d2fe",
+  },
+  unicodeBanner: {
+    marginTop: "12px",
+    padding: "10px",
+    backgroundColor: "#0f172a",
+    borderRadius: "8px",
+    fontSize: "14px",
+    color: "#cbd5e1",
+  },
+});
 
 // Child component to test mount() and cleanup() lifecycle hooks
 function LifecycleBox() {
@@ -32,52 +114,13 @@ function LifecycleBox() {
   });
 
   return (
-    <div
-      style={{
-        padding: "12px",
-        background: "#0f172a",
-        borderRadius: "8px",
-        marginTop: "10px",
-      }}
-    >
+    <div className={styles.lifecycleBox}>
       <p>
         Active Timer Ticks: <strong>{ticks()}s</strong>
       </p>
-      <small style={{ color: "#94a3b8" }}>
+      <small style={styles.mutedText}>
         Toggle off to test cleanup() in console.
       </small>
-    </div>
-  );
-}
-
-// Route views to test Pages, Page, and navigate()
-function HomeView() {
-  return (
-    <div>
-      <h3>Home Route (/)</h3>
-      <p>Default route rendered successfully via Levelo Router.</p>
-    </div>
-  );
-}
-
-function AboutView() {
-  head({
-    title: 'About Page'
-  })
-  return (
-    <div>
-      <h3>About Route (/about)</h3>
-      <p>Navigation works smoothly without full page reload.</p>
-      <img src={logo} />
-    </div>
-  );
-}
-
-function ProfileView() {
-  return (
-    <div>
-      <h3>User Profile Route (/user/42)</h3>
-      <p>Dynamic or nested route view rendered.</p>
     </div>
   );
 }
@@ -96,7 +139,7 @@ export function App() {
   head({
     title: `LeveloJS Test (${count()})`,
     meta: [
-      { name: "description", content: "Testing all LeveloJS Web Runtime APIs" },
+      { name: "description", content: "Testing all LeveloJS Runtime APIs" },
     ],
   });
 
@@ -107,11 +150,10 @@ export function App() {
     const logMsg = `Effect triggered -> count: ${currentCount}, multiplier: ${currentMult}`;
     console.log("[Effect]", logMsg);
 
-    // Update head title reactively
     head({ title: `LeveloJS (${currentCount} x ${currentMult})` });
   });
 
-  // 5. Test batch() - should trigger effect only ONCE for two state updates
+  // 5. Test batch()
   const handleBatchUpdate = () => {
     batch(() => {
       setCount(count() + 1);
@@ -123,40 +165,31 @@ export function App() {
     ]);
   };
 
-  // 6. Test style() helper
-  const styles = style({
-    customBox: {
-      backgroundColor: "#1e1b4b",
-      border: "1px solid #6366f1",
-      padding: "12px",
-      borderRadius: "8px",
-      marginTop: "10px",
-      color: "#c7d2fe",
-    },
-  });
-
   return (
     <Fragment>
-      <main id="root" className="app-container">
+      <main id="root" className={styles.container}>
         {/* Header & Unicode / Emoji Check */}
-        <header className="card">
-          <span className="badge">Web Runtime API Diagnostics</span>
-          <h1 style={{ marginTop: "8px" }}>LeveloJS Full API Test Suite</h1>
-          <p style={{ color: "#94a3b8" }}>
-            Testing Reactivity, Lifecycle, Router, Head, Style helper, and JSX
-            Fragment.
+        <header className={styles.card}>
+          <span className={styles.badge}>LeveloJS Cross-Platform Runtime</span>
+          <h1 style={styles.title}>LeveloJS Full API Test Suite</h1>
+          <p style={styles.mutedText}>
+            Testing Reactivity, Lifecycle, Head, Asset import, and Unified style() API.
           </p>
-          <div
-            style={{ marginTop: "10px", fontSize: "14px", color: "#cbd5e1" }}
-          >
+          <div className={styles.unicodeBanner}>
             Unicode Check: শ্রী ক্ষমা বিদ্যালয় যুক্তাক্ষর | 😍🖐👍 | 漢字/汉字
           </div>
+          <img
+            src={logo}
+            style={{ width: "48px", height: "48px", marginTop: "12px" }}
+          />
         </header>
 
         {/* Section 1: state, computed, effect, batch */}
-        <section className="card">
-          <h2>1. Reactivity (state, computed, effect, batch)</h2>
-          <div style={{ display: "flex", gap: "20px", margin: "12px 0" }}>
+        <section className={styles.card}>
+          <h2 style={styles.sectionTitle}>
+            1. Reactivity (state, computed, effect, batch)
+          </h2>
+          <div className={styles.row}>
             <p>
               Count: <strong>{count()}</strong>
             </p>
@@ -168,24 +201,24 @@ export function App() {
             </p>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <div className={styles.row}>
             <button
               type="button"
-              className="btn"
+              className={styles.btnPrimary}
               onClick={() => setCount(count() + 1)}
             >
               Increment Count
             </button>
             <button
               type="button"
-              className="btn"
+              className={styles.btnPrimary}
               onClick={() => setMultiplier(multiplier() + 1)}
             >
               Increment Multiplier
             </button>
             <button
               type="button"
-              className="btn btn-secondary"
+              className={styles.btnSecondary}
               onClick={handleBatchUpdate}
             >
               Batch Update Both (+1 each)
@@ -209,12 +242,13 @@ export function App() {
         </section>
 
         {/* Section 2: mount & cleanup */}
-        <section className="card">
-          <h2>2. Lifecycle Hooks (mount & cleanup)</h2>
+        <section className={styles.card}>
+          <h2 style={styles.sectionTitle}>
+            2. Lifecycle Hooks (mount & cleanup)
+          </h2>
           <button
             type="button"
-            className="btn"
-            style={{ marginTop: "10px" }}
+            className={styles.btnPrimary}
             onClick={() => setShowLifecycle(!showLifecycle())}
           >
             {showLifecycle()
@@ -225,55 +259,16 @@ export function App() {
           {showLifecycle() ? <LifecycleBox /> : null}
         </section>
 
-        {/* Section 3: Router (Pages, Page, navigate) */}
-        <section className="card">
-          <h2>3. Client-Side Router (Pages, Page, navigate)</h2>
-          <nav className="nav-bar">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate("/")}
-            >
-              Go Home (/)
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate("/about")}
-            >
-              Go About (/about)
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate("/user/42")}
-            >
-              Go Profile (/user/42)
-            </button>
-          </nav>
-
-          <div
-            style={{
-              marginTop: "14px",
-              padding: "12px",
-              background: "#0f172a",
-              borderRadius: "8px",
-            }}
-          >
-            <Pages>
-              <Page path="/" component={HomeView} />
-              <Page path="/about" component={AboutView} />
-              <Page path="/user/:id" component={ProfileView} />
-            </Pages>
-          </div>
-        </section>
-
-        {/* Section 4: style() helper */}
-        <section className="card">
-          <h2>4. Style Helper API (style)</h2>
+        {/* Section 3: style() API verification (both style={} and className={}) */}
+        <section className={styles.card}>
+          <h2 style={styles.sectionTitle}>
+            3. Unified Style Helper API (style)
+          </h2>
           <div style={styles.customBox}>
-            This box uses the <code>style()</code> API from LeveloJS. Check
-            DevTools to verify how it compiles.
+            Box A: Applied via <code>style=&#123;styles.customBox&#125;</code>
+          </div>
+          <div className={styles.customBox}>
+            Box B: Applied via <code>className=&#123;styles.customBox&#125;</code>
           </div>
         </section>
       </main>

@@ -96,16 +96,16 @@ export async function buildNativeBundle(
                 path: candidate,
                 namespace: 'native-asset',
                 pluginData: { publicUrl: args.path },
-              }
+              };
             });
 
             // Resolve relative asset imports (e.g., './assets/logo.png')
-            build.onResolve({filter: ASSET_FILTER}, (args) => {
+            build.onResolve({ filter: ASSET_FILTER }, (args) => {
               const resolvedPath = path.resolve(args.resolveDir, args.path);
               return {
                 path: resolvedPath,
                 namespace: 'native-asset',
-              }
+              };
             });
 
             // Copy imported assets & return resolved path string inside bundle.js

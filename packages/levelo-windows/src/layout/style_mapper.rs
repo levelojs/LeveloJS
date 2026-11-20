@@ -5,6 +5,7 @@ use taffy::prelude::*;
 pub fn resolve_taffy_style(
     node: &UiNode,
     default_font_size: f32,
+    viewport_height: f32,
     parent_is_button: bool,
     parent_has_align: bool,
 ) -> Style {
@@ -71,6 +72,16 @@ pub fn resolve_taffy_style(
         }
     };
 
+    let min_h_dim = if let Some(vh) = node.style.min_height_vh {
+        length(viewport_height * (vh / 100.0))
+    } else if let Some(mh) = node.style.min_height {
+        length(mh)
+    } else {
+        auto()
+    };
+
+    let gap_val = node.style.gap.unwrap_or(0.0);
+
     Style {
         display: Display::Flex,
         flex_direction,
@@ -105,6 +116,14 @@ pub fn resolve_taffy_style(
             Some(AlignItems::FLEX_START)
         } else {
             None
+        },
+        min_size: Size {
+            width: auto(),
+            height: min_h_dim,
+        },
+        gap: Size {
+            width: length(gap_val),
+            height: length(gap_val),
         },
         ..Default::default()
     }

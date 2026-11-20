@@ -74,6 +74,7 @@ impl LayoutEngine {
             let taffy_style = style_mapper::resolve_taffy_style(
                 node,
                 default_font_size,
+                viewport_height,
                 parent_is_button,
                 parent_has_align,
             );

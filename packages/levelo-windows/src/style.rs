@@ -1,4 +1,4 @@
-// packages/levelo-windows/src/controls.rs
+// packages/levelo-windows/src/style.rs
 
 use skia_safe::Color;
 
@@ -10,12 +10,15 @@ pub struct NodeStyle {
     pub y: Option<f32>,
     pub width: Option<f32>,
     pub height: Option<f32>,
+    pub min_height: Option<f32>,
+    pub min_height_vh: Option<f32>,
 
     // Flexbox
     pub display: Option<String>,
     pub flex_direction: Option<String>,
     pub align_items: Option<String>,
     pub justify_content: Option<String>,
+    pub gap: Option<f32>,
 
     // Spacing
     pub padding_top: Option<f32>,

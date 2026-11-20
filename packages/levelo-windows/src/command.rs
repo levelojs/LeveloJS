@@ -189,6 +189,54 @@ fn parse_px(value: &str) -> Option<f32> {
         .ok()
 }
 
+/// Parses 1, 2, 3, or 4 value CSS box shorthand ("20px", "10px 16px", "10px 20px 30px 40px")
+/// Returns (top, right, bottom, left)
+fn parse_box_shorthand(value: &str) -> Option<(f32, f32, f32, f32)> {
+    let parts: Vec<f32> = value
+        .split_whitespace()
+        .filter_map(parse_px)
+        .collect();
+
+    match parts.len() {
+        1 => Some((parts[0], parts[0], parts[0], parts[0])),
+        2 => Some((parts[0], parts[1], parts[0], parts[1])),
+        3 => Some((parts[0], parts[1], parts[2], parts[1])),
+        4 => Some((parts[0], parts[1], parts[2], parts[3])),
+        _ => None,
+    }
+}
+
+/// Parses CSS border shorthand like "1px solid #1f2937" or "none"
+fn parse_border_shorthand(value: &str) -> (Option<f32>, Option<Color>) {
+    let trimmed = value.trim();
+    if trimmed.eq_ignore_ascii_case("none") || trimmed == "0" {
+        return (Some(0.0), Some(Color::TRANSPARENT));
+    }
+
+    let mut width = None;
+    let mut color = None;
+
+    for token in trimmed.split_whitespace() {
+        if matches!(
+            token.to_lowercase().as_str(),
+            "solid" | "dashed" | "dotted" | "double" | "groove" | "ridge" | "inset" | "outset"
+        ) {
+            continue;
+        }
+        if width.is_none() {
+            if let Some(w) = parse_px(token) {
+                width = Some(w);
+                continue;
+            }
+        }
+        if color.is_none() {
+            color = Some(parse_color(token));
+        }
+    }
+
+    (width, color)
+}
+
 /// Parses "#rrggbb", "#rgb" and a few common color names
 fn parse_color(input: &str) -> Color {
     let value = input.trim().to_lowercase();
@@ -415,27 +463,67 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                         "y" => target.style.y = parse_px(value),
                         "width" => target.style.width = parse_px(value),
                         "height" => target.style.height = parse_px(value),
+                        "min-height" => {
+                            let v = value.trim();
+                            if let Some(vh_str) = v.strip_suffix("vh") {
+                                if let Ok(vh) = vh_str.trim().parse::<f32>() {
+                                    target.style.min_height_vh = Some(vh);
+                                }
+                            } else {
+                                target.style.min_height = parse_px(v);
+                            }
+                        }
                         "font-size" => target.style.font_size = parse_px(value),
                         "font-weight" => target.style.font_weight = Some(value.clone()),
                         "border-radius" => target.style.border_radius = parse_px(value),
                         "border-width" => target.style.border_width = parse_px(value),
+                        "border-color" => {
+                            target.style.border_color = Some(parse_color(value));
+                        }
+                        "border" => {
+                            let (w, c) = parse_border_shorthand(value);
+                            if let Some(bw) = w {
+                                target.style.border_width = Some(bw);
+                            }
+                            if let Some(bc) = c {
+                                target.style.border_color = Some(bc);
+                            }
+                        }
                         "background" | "background-color" => {
                             target.style.background_color = Some(parse_color(value));
                         }
                         "color" => {
                             target.style.color = Some(parse_color(value));
                         }
-                        "border-color" => {
-                            target.style.border_color = Some(parse_color(value));
-                        }
                         "display" => target.style.display = Some(value.clone()),
                         "flex-direction" => target.style.flex_direction = Some(value.clone()),
                         "align-items" => target.style.align_items = Some(value.clone()),
                         "justify-content" => target.style.justify_content = Some(value.clone()),
+                        "gap" => target.style.gap = parse_px(value),
+                        "padding" => {
+                            if let Some((t, r, b, l)) = parse_box_shorthand(value) {
+                                target.style.padding_top = Some(t);
+                                target.style.padding_right = Some(r);
+                                target.style.padding_bottom = Some(b);
+                                target.style.padding_left = Some(l);
+                            }
+                        }
                         "padding-top" => target.style.padding_top = parse_px(value),
                         "padding-bottom" => target.style.padding_bottom = parse_px(value),
                         "padding-left" => target.style.padding_left = parse_px(value),
                         "padding-right" => target.style.padding_right = parse_px(value),
+                        "margin" => {
+                            if let Some((t, r, b, l)) = parse_box_shorthand(value) {
+                                target.style.margin_top = Some(t);
+                                target.style.margin_right = Some(r);
+                                target.style.margin_bottom = Some(b);
+                                target.style.margin_left = Some(l);
+                            }
+                        }
+                        "margin-top" => target.style.margin_top = parse_px(value),
+                        "margin-bottom" => target.style.margin_bottom = parse_px(value),
+                        "margin-left" => target.style.margin_left = parse_px(value),
+                        "margin-right" => target.style.margin_right = parse_px(value),
                         _ => {}
                     }
                 }

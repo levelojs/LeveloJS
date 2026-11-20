@@ -118,7 +118,7 @@ declare global {
     export interface InputHTMLAttributes extends HTMLAttributes {
       type?: Reactive<string>;
       value?: Reactive<string | number | boolean>;
-      placeholder?: Reactive<string>;
+      placeholder?: string | undefined;
       checked?: Reactive<boolean>;
       disabled?: Reactive<boolean>;
       readOnly?: Reactive<boolean>;

@@ -39,6 +39,7 @@ const styles = style({
 export function App() {
   const [count, setCount] = state(1);
   const [vissible, setVissible] = state(false);
+  const [input, setInput] = state('');
 
   return (
     <main className={styles.container}>
@@ -57,6 +58,10 @@ export function App() {
       <div className={styles.dynamic}>
         <button onClick={() => setVissible(!vissible())}>Dynamic Text</button>
         {vissible() && <h2 className={styles.vissible}>Hi</h2>}
+      </div>
+      <div>
+        <input value={input()} onInput={(e) => setInput((e.target as HTMLInputElement).value)} placeholder="type your name"></input>
+        <p>{input()}</p>
       </div>
     </main>
   );

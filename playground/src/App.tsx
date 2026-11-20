@@ -6,7 +6,6 @@ const styles = style({
     backgroundColor: "#090d16",
     color: "#f8fafc",
     padding: "24px",
-    height: '100vh',
   },
   card: {
     backgroundColor: "#111827",
@@ -29,10 +28,17 @@ const styles = style({
     marginTop: "16px",
     color: "#c7d2fe",
   },
+  dynamic: {
+    color: '#000',
+  },
+  vissible: {
+    color: "#00ffff"
+  }
 });
 
 export function App() {
   const [count, setCount] = state(1);
+  const [vissible, setVissible] = state(false);
 
   return (
     <main className={styles.container}>
@@ -48,6 +54,10 @@ export function App() {
         <div style={styles.customBox}>Box via style prop</div>
         <div className={styles.customBox}>Box via className prop</div>
       </section>
+      <div className={styles.dynamic}>
+        <button onClick={() => setVissible(!vissible())}>Dynamic Text</button>
+        {vissible() && <h2 className={styles.vissible}>Hi</h2>}
+      </div>
     </main>
   );
 }

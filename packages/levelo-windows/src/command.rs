@@ -321,6 +321,24 @@ fn collect_in_paint_order(
     }
 }
 
+// Remove item when it calls to remove it
+fn remove_subtree(
+    id: u64,
+    nodes: &mut HashMap<u64, UiNode>,
+    render_order: &mut Vec<u64>,
+) {
+    let children = nodes
+        .remove(&id)
+        .map(|n| n.children)
+        .unwrap_or_default();
+
+    render_order.retain(|&node_id| node_id != id);
+
+    for child_id in children {
+        remove_subtree(child_id, nodes, render_order);
+    }
+}
+
 /// Dynamic fallback / error overlay screen
 pub fn get_initial_operation_batch(error_msg: Option<&str>) -> OperationBatch {
     let mut batch = OperationBatch::new();
@@ -396,17 +414,18 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
         match op {
             Operation::CreateElement { node, element_type } => {
                 nodes.insert(node.0, UiNode::new(node.0, element_type));
+                render_order.retain(|&id| id != node.0);
                 render_order.push(node.0);
             }
             Operation::CreateText { node, text } => {
                 let mut ui_node = UiNode::new(node.0, "text");
                 ui_node.text_content = Some(text.clone());
                 nodes.insert(node.0, ui_node);
+                render_order.retain(|&id| id != node.0);
                 render_order.push(node.0);
             }
             Operation::DeleteNode { node } => {
-                nodes.remove(&node.0);
-                render_order.retain(|&id| id != node.0);
+                remove_subtree(node.0, &mut nodes, &mut render_order);
             }
             Operation::AppendChild { parent, child } => {
                 if let Some(parent_node) = nodes.get_mut(&parent.0) {
@@ -440,11 +459,13 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                         parent_node.children.push(new_child.0);
                     }
                 }
+                remove_subtree(old_child.0, &mut nodes, &mut render_order);
             }
             Operation::RemoveChild { parent, child } => {
                 if let Some(parent_node) = nodes.get_mut(&parent.0) {
                     parent_node.children.retain(|&c| c != child.0);
                 }
+                remove_subtree(child.0, &mut nodes, &mut render_order);
             }
             Operation::SetText { node, text } => {
                 if let Some(target) = nodes.get_mut(&node.0) {

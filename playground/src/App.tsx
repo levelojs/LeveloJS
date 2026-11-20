@@ -1,10 +1,12 @@
 import { state, style } from "levelojs";
+import './style.css';
 
 const styles = style({
   container: {
     backgroundColor: "#090d16",
     color: "#f8fafc",
     padding: "24px",
+    height: '100vh',
   },
   card: {
     backgroundColor: "#111827",

@@ -189,6 +189,12 @@ fn parse_px(value: &str) -> Option<f32> {
         .ok()
 }
 
+// Parse vh value
+fn parse_vh(value: &str) -> Option<f32> {
+    let v = value.trim();
+    v.strip_suffix("vh")?.trim().parse::<f32>().ok()
+}
+
 /// Parses 1, 2, 3, or 4 value CSS box shorthand ("20px", "10px 16px", "10px 20px 30px 40px")
 /// Returns (top, right, bottom, left)
 fn parse_box_shorthand(value: &str) -> Option<(f32, f32, f32, f32)> {
@@ -462,15 +468,22 @@ pub fn build_scene_from_batch(batch: &OperationBatch) -> Vec<UiNode> {
                         "x" => target.style.x = parse_px(value),
                         "y" => target.style.y = parse_px(value),
                         "width" => target.style.width = parse_px(value),
-                        "height" => target.style.height = parse_px(value),
-                        "min-height" => {
-                            let v = value.trim();
-                            if let Some(vh_str) = v.strip_suffix("vh") {
-                                if let Ok(vh) = vh_str.trim().parse::<f32>() {
-                                    target.style.min_height_vh = Some(vh);
-                                }
+                        "height" => {
+                            if let Some(vh) = parse_vh(value) {
+                                target.style.height_vh = Some(vh);
+                                target.style.height = None;
                             } else {
-                                target.style.min_height = parse_px(v);
+                                target.style.height = parse_px(value);
+                                target.style.height_vh = None;
+                            }
+                        }
+                        "min-height" => {
+                            if let Some(vh) = parse_vh(value) {
+                                target.style.min_height_vh = Some(vh);
+                                target.style.min_height = None;
+                            } else {
+                                target.style.min_height = parse_px(value);
+                                target.style.min_height_vh = None;
                             }
                         }
                         "font-size" => target.style.font_size = parse_px(value),

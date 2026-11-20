@@ -10,6 +10,7 @@ pub struct NodeStyle {
     pub y: Option<f32>,
     pub width: Option<f32>,
     pub height: Option<f32>,
+    pub height_vh: Option<f32>,
     pub min_height: Option<f32>,
     pub min_height_vh: Option<f32>,
 

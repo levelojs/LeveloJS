@@ -97,17 +97,42 @@ export function h(tag: TagType, props: Record<string, any> | null, ...children: 
     if (targetKey === 'style' && value !== null) {
       const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);
       const htmlElement = element as HTMLElement | SVGElement;
+      let prevStyleClass: string | null = null;
+
+      const applyStyleValue = (styleVal: any) => {
+        if (!styleVal) return;
+
+        if (typeof styleVal === 'object') {
+          Object.assign(htmlElement.style, styleVal);
+        } else if (typeof styleVal === 'string') {
+          const trimmed = styleVal.trim();
+          // If it contains ':', treat as raw inline cssText; otherwise treat as a style() class token
+          if (trimmed.includes(':')) {
+            htmlElement.style.cssText = trimmed;
+          } else {
+            if (prevStyleClass) {
+              htmlElement.classList.remove(prevStyleClass);
+            }
+            if (trimmed) {
+              htmlElement.classList.add(trimmed);
+              prevStyleClass = trimmed;
+            }
+          }
+        }
+      };
+
       if (descriptor && descriptor.get) {
         effect(() => {
-          const styleVal = safeProps[key];
-          if (typeof styleVal === 'object') {
-            Object.assign(htmlElement.style, styleVal);
-          } else if (typeof styleVal === 'string') {
-            htmlElement.style.cssText = styleVal;
-          }
+          let val = safeProps[key];
+          if (typeof val === 'function') val = val();
+          applyStyleValue(val);
         });
-      } else if (typeof value === 'object') {
-        Object.assign(htmlElement.style, value);
+      } else if (typeof value === 'function') {
+        effect(() => {
+          applyStyleValue(value());
+        });
+      } else {
+        applyStyleValue(value);
       }
     } else {
       const descriptor = Object.getOwnPropertyDescriptor(safeProps, key);

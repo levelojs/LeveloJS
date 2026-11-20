@@ -19,7 +19,13 @@ pub fn resolve_taffy_style(
     let (default_w, default_h): (Dimension, Dimension) = (auto(), auto());
 
     let w_dim: Dimension = node.style.width.map(|w| length(w)).unwrap_or(default_w);
-    let h_dim: Dimension = node.style.height.map(|h| length(h)).unwrap_or(default_h);
+    let h_dim = if let Some(vh) = node.style.height_vh {
+        length(viewport_height * (vh / 100.0))
+    } else if let Some(h) = node.style.height {
+        length(h)
+    } else {
+        default_h
+    };
 
     // Browser default button padding: 1px 6px
     let (pad_x, pad_y) = if is_button { (6.0, 1.0) } else { (0.0, 0.0) };

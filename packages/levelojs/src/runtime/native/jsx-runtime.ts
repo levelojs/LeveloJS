@@ -7,11 +7,19 @@ import { NativeNodeHandle, NativeOpCode } from './types.js';
 
 export { NativeNodeHandle };
 
+interface BuiltNodeHandle extends NativeNodeHandle {
+  silent?: boolean;
+}
+
 let nextNodeId = 1;
 const RESERVED_PROPS = new Set(['children', 'key', 'ref']);
 
 function toKebabCase(str: string): string {
   return str.replace(/[A-Z]/g, (match) => `-${match.toLocaleLowerCase()}`);
+}
+
+function isSilentHandle(val: any): val is BuiltNodeHandle {
+  return Boolean(val && typeof val === 'object' && 'id' in val && (val as BuiltNodeHandle).silent);
 }
 
 function emitNativeStyleToken(nodeId: number, token: NativeStyleToken) {
@@ -30,11 +38,26 @@ function buildNode(
   type: string | Function,
   props: Record<string, any> | null,
   children: any[],
-): NativeNodeHandle | any {
+  silent = false,
+): BuiltNodeHandle | any {
   if (typeof type === 'function') {
     const childProp =
       children.length === 0 ? undefined : children.length === 1 ? children[0] : children;
     return type({ ...props, children: childProp });
+  }
+
+  const isHeadElement = typeof type === 'string' && type.toLowerCase() === 'head';
+  const isSilent = silent || isHeadElement;
+
+  const flatChildren = children.flat(Infinity);
+
+  if (isSilent) {
+    for (const child of flatChildren) {
+      if (typeof child === 'function') {
+        (child as Function)();
+      }
+    }
+    return { id: -1, tag: String(type), silent: true };
   }
 
   const id = nextNodeId++;
@@ -156,8 +179,9 @@ function buildNode(
     }
   }
 
-  for (const child of children.flat(Infinity)) {
+  for (const child of flatChildren) {
     if (child === null || child === undefined || child === false || child === '') continue;
+    if (isSilentHandle(child)) continue;
 
     // Reactive child driven by signal / getter function
     if (typeof child === 'function') {
@@ -167,6 +191,19 @@ function buildNode(
       effect(() => {
         const resolved = (child as Function)();
         console.log('[JS Reactivity] Signal updated, new text value:', resolved);
+
+        if (isSilentHandle(resolved)) {
+          if (currentNodeId !== null) {
+            NativeEmitter.emit({
+              op: 'RemoveChild',
+              opcode: NativeOpCode.RemoveChild,
+              parent: id,
+              child: currentNodeId,
+            });
+            currentNodeId = null;
+          }
+          return;
+        }
 
         // Text signal update
         if (typeof resolved === 'string' || typeof resolved === 'number') {
@@ -202,7 +239,8 @@ function buildNode(
         }
         // Conditional element swap
         else if (resolved && typeof resolved === 'object' && 'id' in resolved) {
-          const newChildId = (resolved as NativeNodeHandle).id;
+          const newChildId = (resolved as BuiltNodeHandle).id;
+          if (newChildId < 0) return;
           if (currentNodeId !== null && currentNodeId !== newChildId) {
             NativeEmitter.emit({
               op: 'ReplaceChild',
@@ -253,12 +291,15 @@ function buildNode(
     }
     // Nested NativeNodeHandle child
     else if (typeof child === 'object' && 'id' in child) {
-      NativeEmitter.emit({
-        op: 'AppendChild',
-        opcode: NativeOpCode.AppendChild,
-        parent: id,
-        child: (child as NativeNodeHandle).id,
-      });
+      const handle = child as BuiltNodeHandle;
+      if (handle.id >= 0) {
+        NativeEmitter.emit({
+          op: 'AppendChild',
+          opcode: NativeOpCode.AppendChild,
+          parent: id,
+          child: handle.id,
+        });
+      }
     }
   }
 

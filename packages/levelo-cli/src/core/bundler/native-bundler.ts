@@ -134,7 +134,11 @@ export async function buildNativeBundle(
                 return undefined;
               }
 
-              const source = await fs.readFile(args.path, 'utf8');
+              let source = await fs.readFile(args.path, 'utf8');
+
+              // Strip <head>...</head> subtree for native builds so head/title/meta tags
+              // never turn into native UI nodes or stray text.
+              source = source.replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, '');
               const transformed = await transformLeveloCode(source, args.path, platform);
 
               return {
@@ -148,7 +152,7 @@ export async function buildNativeBundle(
     });
 
     const duration = Math.round(performance.now() - startTime);
-    console.log(pc.green(`✔ Native bundle generated in ${duration}ms -> dist-native/bundle.js`));
+    console.log(pc.green(`✔ Native bundle generated in ${duration}ms -> ${outDir}`));
     return outFile;
   } catch (err: any) {
     console.error(pc.red(`✖ Failed to build native bundle: ${err.message}`));

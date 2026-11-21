@@ -12,6 +12,38 @@ interface LeveloPluginOptions {
   exclude?: FilterPattern;
 }
 
+
+/**
+ * Cleans JSX text nodes by trimming indentation and normalizing line breaks.
+ */
+function cleanJSXText(text: string): string {
+  const lines = text.split(/\r\n|\n|\r/);
+  let lastNonEmptyLine = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/[^ \t]/.test(lines[i])) lastNonEmptyLine = i;
+  }
+
+  let result = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const isFirstLine = i === 0;
+    const isLastLine = i === lines.length - 1;
+    const isLastNonEmptyLine = i === lastNonEmptyLine;
+
+    let line = lines[i].replace(/\t/g, ' ');
+    if (!isFirstLine) line = line.replace(/^ +/, '');
+    if (!isLastLine) line = line.replace(/ +$/, '');
+
+    if (line) {
+      if (!isLastNonEmptyLine) line += ' ';
+      result += line;
+    }
+  }
+
+  return result;
+}
+
 /**
  * Enterprise-Grade Vite Plugin for Levelo JS.
  */
@@ -223,7 +255,7 @@ function transformJSX(
 
   path.node.children.forEach((child, index) => {
     if (types.isJSXText(child)) {
-      const cleanText = child.value.trim();
+      const cleanText = cleanJSXText(child.value);
 
       if (cleanText) {
         children.push(types.stringLiteral(cleanText));
@@ -236,11 +268,13 @@ function transformJSX(
       const expression = child.expression;
 
       if (!types.isJSXEmptyExpression(expression)) {
-        /*
-         * JSX expressions become lazy getters so signals can update
-         * only the binding that consumed them.
-         */
-        children.push(types.arrowFunctionExpression([], expression as t.Expression));
+        // Render callbacks like {(item, index) => <li />} are not reactive values.
+        // Pass them through untouched so components such as For get the real function.
+        if (types.isArrowFunctionExpression(expression) || types.isFunctionExpression(expression)) {
+          children.push(expression);
+        } else {
+          children.push(types.arrowFunctionExpression([], expression as t.Expression));
+        }
       }
 
       return;
@@ -264,7 +298,6 @@ function transformJSX(
   ]);
 
   path.replaceWith(callExpression as any);
-  path.skip();
 
   return callExpression;
 }

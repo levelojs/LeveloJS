@@ -9,10 +9,10 @@ export {
   type NativeConfig,
   type WebConfig,
 } from './config.js';
-
+// control flow
+export { Show, type ShowProps } from './control-flow/show.js';
 // launch
 export { launch } from './launch.js';
-
 // router
 export { navigate, Page, Pages, params } from './router/index.js';
 // reactivity
@@ -23,10 +23,8 @@ export {
   effect,
   mount,
   state,
+  untrack,
 } from './runtime/reactivity/index.js';
-
-// control flow
-export { Show, type ShowProps } from './control-flow/show.js';
 
 // types
 export type { CSSProperties, JSX, Reactive } from './types/jsx.js';

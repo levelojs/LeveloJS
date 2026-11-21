@@ -9,8 +9,8 @@ export {
   type NativeConfig,
   type WebConfig,
 } from './config.js';
-// control flow
-export { Show, type ShowProps } from './control-flow/show.js';
+// control-flow
+export { For, type ForProps, Show, type ShowChild, type ShowProps } from './control-flow/index.js';
 // launch
 export { launch } from './launch.js';
 // router

@@ -162,7 +162,9 @@ function transformJSX(
       return;
     }
 
-    const propName = attr.name.name as string;
+    const propName = types.isJSXNamespacedName(attr.name)
+      ? `${attr.name.namespace.name}:${attr.name.name.name}`
+      : attr.name.name;
     const propKey = types.identifier(propName);
 
     /*

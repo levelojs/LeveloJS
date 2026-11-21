@@ -25,5 +25,8 @@ export {
   state,
 } from './runtime/reactivity/index.js';
 
+// control flow
+export { Show, type ShowProps } from './control-flow/show.js';
+
 // types
 export type { CSSProperties, JSX, Reactive } from './types/jsx.js';

@@ -1,4 +1,4 @@
 import { render } from "levelojs";
-import { App } from "./App";
+import { Mind } from "./Mind";
 
-render(App, (document.getElementById('app') as HTMLElement));
+render(Mind, (document.getElementById('app') as HTMLElement));

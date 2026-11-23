@@ -2,6 +2,12 @@
 name = "levelo-windows"
 version = "0.0.1"
 edition = "2024"
+description = "Official Windows native runtime and renderer backend for LeveloJS (Pre-release)"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/levelojs/LeveloJS"
+keywords = ["levelo", "levelojs", "windows", "gui", "ui"]
+categories = ["gui"]
 
 [lib]
 name = "levelo_windows"

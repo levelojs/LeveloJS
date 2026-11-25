@@ -1,4 +1,4 @@
-import { cleanup, effect, state } from '../runtime/reactivity/index.js';
+import { cleanup, effect, state, untrack } from '../runtime/reactivity/index.js';
 import type { JSX } from '../types/jsx.js';
 
 export type ShowChild<T> = JSX.Element | ((value: () => T) => JSX.Element);
@@ -34,11 +34,13 @@ export function Show<T>(props: ShowProps<T>): () => JSX.Element {
         ? (props.when as () => T | null | undefined | false)()
         : props.when;
 
+    // Only `when` should be tracked. Rendering the branch must not subscribe
+    // this effect to signals read inside the children or the fallback.
     if (rawWhen) {
       const value = rawWhen as T;
-      setCurrent(resolveChild(props.children, () => value));
+      setCurrent(untrack(() => resolveChild(props.children, () => value)));
     } else {
-      setCurrent(resolveFallback(props.fallback));
+      setCurrent(untrack(() => resolveFallback(props.fallback)));
     }
   });
 

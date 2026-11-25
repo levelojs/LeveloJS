@@ -1,4 +1,5 @@
-import { cleanup, effect, state } from '../runtime/reactivity/index.js';
+import { cleanup, effect, state, untrack } from '../runtime/reactivity/index.js';
+import { type Owner, disposeOwner, runWithOwner } from '../runtime/reactivity/owner.js';
 import type { JSX } from '../types/jsx.js';
 
 export interface ForProps<T> {
@@ -12,6 +13,8 @@ interface Entry<T> {
   index: number;
   setIndex: (next: number) => void;
   element: JSX.Element;
+  /** Owns every effect and cleanup created while rendering this item. */
+  owner: Owner;
 }
 
 function resolveFallback(fallback: JSX.Element | (() => JSX.Element) | undefined): JSX.Element {
@@ -24,7 +27,16 @@ function resolveFallback(fallback: JSX.Element | (() => JSX.Element) | undefined
 
 export function For<T>(props: ForProps<T>): () => JSX.Element[] | JSX.Element {
   const [rendered, setRendered] = state<JSX.Element[] | JSX.Element>(null);
-  const cache = new Map<T, Entry<T>>();
+
+  // Each item maps to a pool of entries, so duplicate items get separate elements.
+  const cache = new Map<T, Entry<T>[]>();
+
+  function disposeAll(): void {
+    for (const pool of cache.values()) {
+      for (const entry of pool) disposeOwner(entry.owner);
+    }
+    cache.clear();
+  }
 
   effect(() => {
     const rawList =
@@ -35,34 +47,35 @@ export function For<T>(props: ForProps<T>): () => JSX.Element[] | JSX.Element {
     const list = Array.isArray(rawList) ? rawList : [];
 
     if (list.length === 0) {
-      cache.clear();
-      setRendered(resolveFallback(props.fallback));
+      disposeAll();
+      // Rendering the fallback must not subscribe this effect to signals it reads.
+      setRendered(untrack(() => resolveFallback(props.fallback)));
       return;
     }
 
-    const activeItems = new Set<T>(list);
-    for (const [cachedItem] of cache) {
-      if (!activeItems.has(cachedItem)) {
-        cache.delete(cachedItem);
-      }
-    }
-
+    const used = new Map<T, number>();
     const nextNodes: JSX.Element[] = [];
 
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
-      let entry = cache.get(item);
+      const position = used.get(item) ?? 0;
+      used.set(item, position + 1);
+
+      const pool = cache.get(item);
+      let entry = pool?.[position];
 
       if (!entry) {
+        const owner: Owner = { cleanups: [] };
         const [getIdx, setIdx] = state<number>(i);
-        const element = props.children(item, getIdx);
-        entry = {
-          item,
-          index: i,
-          setIndex: setIdx,
-          element,
-        };
-        cache.set(item, entry);
+
+        // Render inside the item's own owner so its effects survive list updates,
+        // and untracked so reads inside the item do not re-run the whole list.
+        const element = runWithOwner(owner, () => untrack(() => props.children(item, getIdx)));
+
+        entry = { item, index: i, setIndex: setIdx, element, owner };
+
+        if (pool) pool.push(entry);
+        else cache.set(item, [entry]);
       } else if (entry.index !== i) {
         entry.index = i;
         entry.setIndex(i);
@@ -71,11 +84,23 @@ export function For<T>(props: ForProps<T>): () => JSX.Element[] | JSX.Element {
       nextNodes.push(entry.element);
     }
 
+    // Dispose entries whose items were removed from the list.
+    for (const [item, pool] of cache) {
+      const keep = used.get(item) ?? 0;
+
+      for (let k = keep; k < pool.length; k++) {
+        disposeOwner(pool[k].owner);
+      }
+
+      if (keep === 0) cache.delete(item);
+      else pool.length = keep;
+    }
+
     setRendered(nextNodes);
   });
 
   cleanup(() => {
-    cache.clear();
+    disposeAll();
     setRendered(null);
   });
 

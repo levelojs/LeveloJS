@@ -51,6 +51,7 @@ function cleanJSXText(text: string): string {
 function leveloTransformer(_platform: TargetPlatform = 'web') {
   return ({ types }: { types: typeof t }) => {
     let hasJsx = false;
+    let usesFragment = false;
 
     function getTagName(node: t.JSXElement): string | null {
       const name = node.openingElement.name;
@@ -82,15 +83,57 @@ function leveloTransformer(_platform: TargetPlatform = 'web') {
       return null;
     }
 
+    /**
+     * Converts the children of a JSX element or fragment into call arguments.
+     * Child elements were already replaced with call expressions on their own exit.
+     */
+    function buildChildren(nodeChildren: t.JSXElement['children']): t.Expression[] {
+      const children: t.Expression[] = [];
+
+      nodeChildren.forEach((child) => {
+        if (types.isJSXText(child)) {
+          const cleanText = cleanJSXText(child.value);
+          if (cleanText) children.push(types.stringLiteral(cleanText));
+          return;
+        }
+
+        if (types.isJSXExpressionContainer(child)) {
+          const expression = child.expression;
+
+          if (!types.isJSXEmptyExpression(expression)) {
+            // Render callbacks like {(item, index) => <li />} are not reactive values.
+            // Pass them through untouched so components such as For get the real function.
+            if (
+              types.isArrowFunctionExpression(expression) ||
+              types.isFunctionExpression(expression)
+            ) {
+              children.push(expression);
+            } else {
+              children.push(types.arrowFunctionExpression([], expression as t.Expression));
+            }
+          }
+
+          return;
+        }
+
+        if (types.isExpression(child)) {
+          children.push(child);
+        }
+      });
+
+      return children;
+    }
+
     return {
       name: 'levelojs-jsx-transformer',
       visitor: {
         Program: {
           enter() {
             hasJsx = false;
+            usesFragment = false;
           },
           exit(path: NodePath<t.Program>) {
-            // Only inject 'h' if the file actually contains JSX elements
+            // Only inject imports if the file actually contains JSX
             if (!hasJsx) return;
 
             const hasHImport = path.node.body.some(
@@ -105,15 +148,44 @@ function leveloTransformer(_platform: TargetPlatform = 'web') {
                 ),
             );
 
+            const specifiers: t.ImportSpecifier[] = [];
+
             if (!hasHImport) {
-              path.unshiftContainer(
-                'body',
-                types.importDeclaration(
-                  [types.importSpecifier(types.identifier('h'), types.identifier('h'))],
-                  types.stringLiteral(JSX_IMPORT_PATH),
-                ),
+              specifiers.push(types.importSpecifier(types.identifier('h'), types.identifier('h')));
+            }
+
+            // Aliased so it never clashes with a Fragment the user imported themselves.
+            if (usesFragment) {
+              specifiers.push(
+                types.importSpecifier(types.identifier('_Fragment'), types.identifier('Fragment')),
               );
             }
+
+            if (specifiers.length > 0) {
+              path.unshiftContainer(
+                'body',
+                types.importDeclaration(specifiers, types.stringLiteral(JSX_IMPORT_PATH)),
+              );
+            }
+          },
+        },
+
+        // <>...</> becomes h(_Fragment, null, ...children)
+        JSXFragment: {
+          enter() {
+            hasJsx = true;
+            usesFragment = true;
+          },
+          exit(path: NodePath<t.JSXFragment>) {
+            const children = buildChildren(path.node.children);
+
+            path.replaceWith(
+              types.callExpression(types.identifier('h'), [
+                types.identifier('_Fragment'),
+                types.nullLiteral(),
+                ...children,
+              ]),
+            );
           },
         },
 
@@ -136,10 +208,12 @@ function leveloTransformer(_platform: TargetPlatform = 'web') {
             openingElement.attributes.forEach((attr) => {
               if (!types.isJSXAttribute(attr)) return;
 
-              const propName = types.isJSXNamespacedName(attr.name)
-                ? `${attr.name.namespace.name}:${attr.name.name.name}`
-                : attr.name.name;
-              const propKey = types.identifier(propName);
+              const propName = attr.name.name as string;
+
+              // Names such as data-id or aria-label are not valid identifiers.
+              const propKey = types.isValidIdentifier(propName, false)
+                ? types.identifier(propName)
+                : types.stringLiteral(propName);
 
               if (!attr.value) {
                 properties.push(types.objectProperty(propKey, types.booleanLiteral(true)));
@@ -185,38 +259,7 @@ function leveloTransformer(_platform: TargetPlatform = 'web') {
             }
 
             const propsObject = types.objectExpression(properties);
-            const children: t.Expression[] = [];
-
-            path.node.children.forEach((child) => {
-              if (types.isJSXText(child)) {
-                const cleanText = cleanJSXText(child.value);
-                if (cleanText) children.push(types.stringLiteral(cleanText));
-                return;
-              }
-
-              if (types.isJSXExpressionContainer(child)) {
-                const expression = child.expression;
-
-                if (!types.isJSXEmptyExpression(expression)) {
-                  // Render callbacks like {(item, index) => <li />} are not reactive values.
-                  // Pass them through untouched so components such as For get the real function.
-                  if (
-                    types.isArrowFunctionExpression(expression) ||
-                    types.isFunctionExpression(expression)
-                  ) {
-                    children.push(expression);
-                  } else {
-                    children.push(types.arrowFunctionExpression([], expression as t.Expression));
-                  }
-                }
-
-                return;
-              }
-
-              if (types.isExpression(child)) {
-                children.push(child);
-              }
-            });
+            const children = buildChildren(path.node.children);
 
             const callExpression = types.callExpression(types.identifier('h'), [
               factoryIdentifier,

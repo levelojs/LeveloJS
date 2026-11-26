@@ -78,7 +78,7 @@ export async function buildWebBundle(rootDir: string = process.cwd()): Promise<s
       platform: 'browser',
       target: 'es2022',
       minify: config.web?.minify ?? true,
-      sourcemap: config.web?.minify ?? false,
+      sourcemap: config.web?.sourcemap ?? false,
       metafile: true,
       loader: {
         '.svg': 'file',

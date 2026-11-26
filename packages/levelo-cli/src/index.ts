@@ -1,6 +1,10 @@
 import cac from 'cac';
 import pc from 'picocolors';
+import { createRequire } from 'node:module';
 import { runBuildCommand, runDevCommand, runPreviewCommand } from './commands/run.js';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json');
 
 const cli = cac('levelo');
 
@@ -46,5 +50,5 @@ cli
   });
 
 cli.help();
-cli.version('0.1.0');
+cli.version(pkg.version || '0.1.0');
 cli.parse();

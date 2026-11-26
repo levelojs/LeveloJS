@@ -9,9 +9,7 @@ cli
   .option('-p, --platform <platform>', 'Target platform (web | windows | android)', {
     default: 'web',
   })
-  .option('--port <port>', 'Web dev server port', {
-    default: 6262,
-  })
+  .option('--port <port>', 'Web dev server port')
   .action(async (options) => {
     try {
       await runDevCommand(options);

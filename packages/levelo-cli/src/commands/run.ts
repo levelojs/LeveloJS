@@ -7,22 +7,46 @@ import { buildNativeBundle } from '../core/bundler/native-bundler.js';
 import { buildWebBundle } from '../core/bundler/web-bundler.js';
 import { startDevServer } from '../core/server/dev-server.js';
 import { startPreviewServer } from '../core/server/preview-server.js';
+import { loadLeveloConfig } from '../utils/config-loader.js';
 
 interface CommandOptions {
   platform: 'windows' | 'web' | 'android';
   port?: number;
 }
 
+// resolve and validate port from CLI flag, config, or default
+function resolvePort(cliPort: number | undefined, configPort: number | undefined): number {
+  const rawPort = cliPort ?? configPort ?? 6262;
+  const port = Number(rawPort);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(
+      `Invalid port "${rawPort}". Port must be an integer between 1 and 65535.`,
+    );
+  }
+
+  if (port < 1024) {
+    console.log(
+      pc.yellow(
+        `⚠ Port ${port} is a privileged/system port (1-1023). Use 1024-65535 if binding fails.`,
+      ),
+    );
+  }
+
+  return port;
+}
+
 export async function runDevCommand(options: CommandOptions): Promise<void> {
   const platform = options.platform || 'web';
-  const port = options.port || 6262;
   const projectRoot = process.cwd();
+  const config = await loadLeveloConfig(projectRoot);
+  const resolvedPort = resolvePort(options.port, config.web?.port);
 
   if (platform === 'web') {
     console.log(pc.bold(`\n⚡ Starting LeveloJS Web Engine...\n`));
     await startDevServer({
       cwd: projectRoot,
-      port: Number(port),
+      port: Number(resolvedPort),
     });
   } else if (platform === 'windows') {
     console.log(pc.bold(`\n⚡ Building Native Bundle for Windows...\n`));
@@ -61,8 +85,11 @@ export async function runBuildCommand(options: CommandOptions): Promise<void> {
 }
 
 export async function runPreviewCommand(options: { port?: number }): Promise<void> {
+  const projectRoot = process.cwd();
+  const config = await loadLeveloConfig(projectRoot);
+  const resolvedPort = resolvePort(options.port, config.web?.port);
   await startPreviewServer({
     cwd: process.cwd(),
-    ...(options.port ? { port: Number(options.port) } : {}),
+    port: resolvedPort,
   });
 }

@@ -1,101 +1,84 @@
-<div align="center">
-  <img style="width: 200px; height: 200px;" src="https://raw.githubusercontent.com/MotionMind2007/Levelo-Js/main/assets/logo-colored.svg">
-  <h1>Levelo Js</h1>
-  <a href="https://lab.motionmind.me"><img alt="Made by Motion Mind" src="https://img.shields.io/badge/MADE%20BY%20Motion%20Mind-000000.svg?style=for-the-badge&labelColor=000"></a>
-  <a href="https://www.npmjs.com/package/create-levelo-app"><img alt="NPM version" src="https://img.shields.io/npm/v/create-levelo-app.svg?style=for-the-badge&labelColor=000000"></a>
-  <a href="https://github.com/MotionMind2007/Levelo-Js/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-000000.svg?style=for-the-badge&labelColor=000000"></a>
-</div>
-## Welcome to your Levelo Js Project
-This project was bootstrapped with [create-levelo-app](https://github.com/MotionMind2007/Levelo-Js/tree/main/packages%2Fcreate-levelo-app).
+<p align="center">
+  <img src="https://raw.githubusercontent.com/levelojs/LeveloJs/main/assets/logo-colored.svg" alt="Levelo JS logo" width="120" />
+</p>
 
-## Quick Start
+<h1 align="center">Levelo JS</h1>
 
-```sh
-npx create-levelo-app my-app
-```
+<p align="center">
+  A lightweight JavaScript framework with zero runtime overhead, targeting the real DOM on the web and a WebView-free native engine.
+</p>
 
-```sh
-cd my-app
+<p align="center">
+  <a href="https://www.npmjs.com/package/levelojs"><img src="https://img.shields.io/npm/v/levelojs" alt="npm version" /></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license" />
+  <a href="https://levelojs.motionmindx.com"><img src="https://img.shields.io/badge/Docs-7C6BF6" alt="Documentation" /></a>
+</p>
+
+<p align="center">
+  A project by <a href="https://motionmindx.com"><b>Motion Mind X</b></a>
+</p>
+
+---
+
+## Getting Started
+
+This project was created with [create-levelo-app](https://github.com/levelojs/LeveloJs/tree/main/packages/create-levelo-app).
+
+```bash
 npm install
 npm run dev
 ```
-That's it. You're leveling up.
 
----
-
-## Templates
-
-| Template             | Command                        |
-| -------------------- | ------------------------------ |
-| JavaScript (default) | `npx create-levelo-app my-app` |
-| TypeScript           | Pending                        |
-| Minimal              | pending                        |
-
----
+Open the local URL from the terminal to see your app.
 
 ## Project Structure
 
 ```
 my-app/
 ├── src/
-│   ├── assets/         ← Static assets
-│   ├── pages/          ← All pages
-│   ├── index.css       ← Global styles
-│   ├── Mind.tsx        ← Main entry file
-│   └── index.tsx       ← App entry point
+│   ├── App.tsx        <- Main component, start here
+│   ├── main.tsx       <- App entry point
+│   ├── App.css        <- Component styles
+│   └── main.css       <- Global styles
 ├── index.html
-├── vite.config.ts      ← Levelo Vite plugin pre-configured
-├── levelo.config.ts    ← Custom levelo config
+├── vite.config.ts     <- Levelo Vite plugin pre-configured
 └── package.json
 ```
 
----
-
 ## What is Levelo JS?
 
-Levelo JS is a lightweight, ultra-fast reactive UI framework built by [Motion Mind](https://lab.motionmind.me).
+Levelo JS is a lightweight JavaScript framework with zero runtime overhead, targeting the real DOM on the web and a WebView-free native engine.
 
----
+No Virtual DOM. State changes update only the target DOM node.
+
+## Example
+
+```tsx
+import { state } from "levelojs";
+
+export function App() {
+  const [count, setCount] = state(0);
+
+  return (
+    <main>
+      <h1>Hello, Levelo JS</h1>
+      <p>Count: {count()}</p>
+      <button onClick={() => setCount(count() + 1)}>Increment</button>
+    </main>
+  );
+}
+```
 
 ## Features
 
-- No Virtual DOM
-- Direct Real DOM
-- Runtime Overhead 0%
-- Bundle Size Ultra Light
-- JSX Support
-- Vite-powered workflow
-- Simple and lightweight setup
+- Real DOM rendering, no Virtual DOM
+- Fine-grained reactivity: state, effect, computed, batch
+- TypeScript and JSX support
+- Vite-powered workflow with fast HMR
+- Built-in routing, styles, and head management
 
----
+## Learn More
 
-## Core API
+- [Documentation](https://levelojs.motionmindx.com)
+- [GitHub Repository](https://github.com/levelojs/LeveloJs)
 
-- state
-- effect
-- computed
-- cleanup
-- mount
-- style
-- head
-- render
-- h
-- Pages
-- Page
-- a
-- leveloPlugin
-
----
-
-## Community & Support
-
-- [Documentation](https://levelojs.motionmind.me)
-- [GitHub Repository](https://github.com/MotionMind2007/Levelo-Js)
-
-## License
-
-MIT © Motion Mind
-
----
-
-Built with by [Motion Mind](https://lab.motionmind.me)

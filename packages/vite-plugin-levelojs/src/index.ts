@@ -193,7 +193,10 @@ function leveloJsBabelTransformer({ types }: { types: typeof t }): PluginObj {
         if (!types.isJSXEmptyExpression(expression)) {
           // Render callbacks like {(item, index) => <li />} are not reactive values.
           // Pass them through untouched so components such as For get the real function.
-          if (types.isArrowFunctionExpression(expression) || types.isFunctionExpression(expression)) {
+          if (
+            types.isArrowFunctionExpression(expression) ||
+            types.isFunctionExpression(expression)
+          ) {
             children.push(expression);
           } else {
             children.push(types.arrowFunctionExpression([], expression as t.Expression));

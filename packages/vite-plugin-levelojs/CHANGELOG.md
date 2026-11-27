@@ -3,14 +3,17 @@
 ## [1.1.1] - 2026-11-27
 
 ### Fixed
+
 - Polished README and removed stray AI text and leftover artifacts
 
 ## [1.1.0] - 2026-11-27
 
 ### Added
+
 - `<>...</>` support, compiled to `h(Fragment, null, ...)` (needs `levelojs` 2.3.0 or newer)
 
 ### Fixed
+
 - JSX nested inside expressions (callbacks, ternaries, props) is compiled by Levelo
   instead of falling through to Vite's default JSX transform
 - Function children (`{(item, index) => ...}`) are passed through untouched, so `For` works

@@ -20,9 +20,7 @@ function resolvePort(cliPort: number | undefined, configPort: number | undefined
   const port = Number(rawPort);
 
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error(
-      `Invalid port "${rawPort}". Port must be an integer between 1 and 65535.`,
-    );
+    throw new Error(`Invalid port "${rawPort}". Port must be an integer between 1 and 65535.`);
   }
 
   if (port < 1024) {

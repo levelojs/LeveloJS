@@ -1,5 +1,5 @@
 import { cleanup, effect, state, untrack } from '../runtime/reactivity/index.js';
-import { type Owner, disposeOwner, runWithOwner } from '../runtime/reactivity/owner.js';
+import { disposeOwner, type Owner, runWithOwner } from '../runtime/reactivity/owner.js';
 import type { JSX } from '../types/jsx.js';
 
 export interface ForProps<T> {

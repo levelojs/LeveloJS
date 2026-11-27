@@ -1,6 +1,6 @@
+import { createRequire } from 'node:module';
 import cac from 'cac';
 import pc from 'picocolors';
-import { createRequire } from 'node:module';
 import { runBuildCommand, runDevCommand, runPreviewCommand } from './commands/run.js';
 
 const require = createRequire(import.meta.url);

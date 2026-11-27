@@ -17,7 +17,7 @@ Official Windows native runtime and renderer backend for **LeveloJS** applicatio
 ## Ecosystem
 
 - **levelojs** — Core fine-grained reactive UI framework
-- **levelo-cli** — Official CLI and bundler *(pre-release)*
+- **levelo-cli** — Official CLI and bundler _(pre-release)_
 - **vite-plugin-levelojs** — Official Vite integration plugin
 
 ## License

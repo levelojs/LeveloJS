@@ -5,6 +5,7 @@
 ## [2.3.1] - 2026-11-27
 
 ### Changed
+
 - Updated `README.md` to highlight fine-grained web speed and cross-platform native performance and link to the official documentation
 
 ---
@@ -12,6 +13,7 @@
 ## [2.3.0] - 2026-11-27
 
 ### Added
+
 - `For` and `Show` control-flow components (`fallback` prop, function children)
 - `Fragment` and `unmount`
 - `untrack(fn)`: read signals without subscribing
@@ -21,6 +23,7 @@
 - `effect()` returns a disposer function
 
 ### Changed
+
 - Dependencies are collected again on every run and the ones no longer used are
   unsubscribed and removed automatically (before, subscriptions were never removed)
 - **Behavior change:** effects created inside another effect are now disposed
@@ -28,6 +31,7 @@
 - State equality uses `Object.is` (`NaN` no longer re-triggers effects)
 
 ### Fixed
+
 - Nested effects: the outer effect stopped tracking after an inner effect finished
 - Effects kept updating for branches they no longer read, and leaked memory
 - An error inside a cleanup no longer leaves an effect stuck

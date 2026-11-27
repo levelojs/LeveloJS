@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.1 - 2026-11-28
+
+### Fixed
+- Update vite-plugin-levelojs to 1.1.1, fixes h is not defined in jsx templates
+- Fix pnpm v12 warning, use pnpm-workspace.yaml instead of pnpm field
+
+---
+
 ## 2.2.0 - 2026-11-28
 
 ### Added

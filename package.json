@@ -10,7 +10,7 @@
     "format": "biome check --write packages",
     "lint": "biome check packages",
 
-    "create": "node packages/create-levelo-app/cli.js",
+    "create:new": "node packages/create-levelo-app/cli.js",
     "dev:vite:tsx": "pnpm --dir packages/create-levelo-app/templates/vite/tsx dev",
     "dev:vite:jsx": "pnpm --dir packages/create-levelo-app/templates/vite/jsx dev",
     "dev:cli:tsx": "pnpm --dir packages/create-levelo-app/templates/levelo-cli/tsx dev",

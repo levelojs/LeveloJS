@@ -9,6 +9,8 @@ pkg/
 pkg-node/
 
 x/
+y/
+z/
 
 package-lock.json
 pnpm-lock.yaml

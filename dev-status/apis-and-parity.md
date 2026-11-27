@@ -12,7 +12,7 @@ Internal reference tracking exported APIs across Web (`src/index.ts`), Shared (`
 | Reactivity | `batch` | Supported | Exported | Batches reactive updates |
 | Reactivity | `cleanup` | Supported | Exported | Registers cleanup callbacks |
 | Reactivity | `mount` | Supported | Exported | Mount helper / lifecycle hook |
-| Router | `navigate`, `Page`, `Pages`, `params` | Exported | Exported | Shared router surface; full native router flow pending |
+| Router | `navigate`, `Page`, `Pages`, `params` | Supported | Exported | Shared router surface; full native router flow pending |
 | Config & Entry | `defineConfig`, `launch` | Supported | Supported | App configuration and entry bootstrap |
 | Types | `CSSProperties`, `JSX`, `Reactive` | Supported | Supported | TypeScript types |
 

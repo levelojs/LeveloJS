@@ -1,26 +1,22 @@
 # Levelo JS
 
-Levelo JS is a lightweight fine-grained UI runtime with a shared renderer and platform-specific adapters.
+Levelo JS is a lightweight fine-grained UI runtime designed for near-native speed on the web and native-level performance across platforms.
 
 ## Rendering model
 
 Levelo does not use a Virtual DOM, tree reconciliation, or tree diffing for reactive updates.
 
-The renderer creates the initial native structure once. Reactive expressions then subscribe to their own signals and update only the native node, property, style, event, or dynamic child they own.
+The initial UI structure is created once. Reactive expressions then subscribe directly to the signals they read and update only the specific target node, property, style, event, or dynamic child—without re-running component functions or diffing trees.
 
 ```text
 Signal
   ↓
 Reactive binding
   ↓
-Direct renderer update
+Direct target update
   ↓
-Platform adapter
-  ↓
-Native UI
+Web DOM / Platform adapter
 ```
-
-The internal `RenderTree` provides structural information for initial mounting and ownership. It is not compared against a previous tree when a signal changes.
 
 ## Web usage
 
@@ -31,7 +27,7 @@ npm install levelojs
 npm install -D vite vite-plugin-levelojs
 ```
 
-Then configure Vite:
+Configure Vite:
 
 ```ts
 import { defineConfig } from 'vite';
@@ -42,7 +38,7 @@ export default defineConfig({
 });
 ```
 
-Use Levelo without knowing anything about the renderer internals:
+Mount your app:
 
 ```tsx
 import { render } from 'levelojs';
@@ -51,7 +47,7 @@ function App() {
   return (
     <div>
       <h1>Hello Levelo</h1>
-      <p>The web renderer is running.</p>
+      <p>Fine-grained reactive UI on the web.</p>
     </div>
   );
 }
@@ -61,9 +57,11 @@ render(App, document.getElementById('app'));
 
 ## Fine-grained updates
 
-Reactive JSX expressions are compiled into lazy getters. This lets Levelo attach each expression to the signal it actually reads.
+Reactive JSX expressions compile into lazy getters so each binding tracks only its own signal dependencies:
 
 ```tsx
+import { render, state } from 'levelojs';
+
 function Counter() {
   const [count, setCount] = state(0);
 
@@ -74,15 +72,17 @@ function Counter() {
     </div>
   );
 }
+
+render(Counter, document.getElementById('app'));
 ```
 
-Changing `count` updates the existing `span` text node. The `Counter` function does not need to execute again, and no tree diff is calculated.
+When `count` changes, only the bound `span` content updates—`Counter` is not re-executed and no Virtual DOM diffing occurs.
 
-## Public API
+## Documentation
 
-- `h()` creates the platform-neutral render structure used for initial mounting.
-- `render()` mounts a Levelo component into a DOM container.
-- `state()` and the existing reactive primitives remain available through the package entry point.
-- Platform adapters provide the native implementation of renderer operations.
+Full API reference, guides, and multi-platform details are available in the official documentation:
+https://levelojs.motionmindx.com
 
-The Android renderer can consume the same shared renderer contracts while providing Android-specific native executors.
+## License
+
+MIT

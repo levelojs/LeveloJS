@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-levelojs",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "The official Vite plugin for Levelo JS framework",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,14 +42,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MotionMind2007/Levelo-Js.git"
+    "url": "git+https://github.com/levelojs/LeveloJS.git"
   },
   "bugs": {
-    "url": "https://github.com/MotionMind2007/Levelo-Js/issues"
+    "url": "https://github.com/levelojs/LeveloJS/issues"
   },
   "files": [
     "dist",
-    "src",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

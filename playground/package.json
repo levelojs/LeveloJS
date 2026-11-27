@@ -15,13 +15,14 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "kivex-levelo": "^1.5.0",
+    "levelo-cli": "workspace:*",
     "levelojs": "workspace:*",
-    "levelo-cli": "workspace:*"
+    "vite-plugin-levelojs": "workspace:*"
   },
   "devDependencies": {
     "@babel/plugin-syntax-jsx": "^8.0.1",
     "@babel/plugin-transform-typescript": "^8.0.1",
-    "vite": "^8.1.4",
-    "vite-plugin-levelojs": "file:..\\packages\\vite-plugin-levelojs"
+    "vite": "^8.1.4"
   }
 }

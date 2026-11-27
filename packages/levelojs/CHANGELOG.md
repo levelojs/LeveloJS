@@ -2,6 +2,46 @@
 
 ## All notable changes to this project will be documented in this file.
 
+## [2.3.1] - 2026-11-27
+
+### Changed
+- Updated `README.md` to highlight fine-grained web speed and cross-platform native performance and link to the official documentation
+
+---
+
+## [2.3.0] - 2026-11-27
+
+### Added
+- `For` and `Show` control-flow components (`fallback` prop, function children)
+- `Fragment` and `unmount`
+- `untrack(fn)`: read signals without subscribing
+- `launch()`: generate the HTML page directly from JSX, no html file needed
+- Config file system (`defineConfig`) used by `launch()`
+- `client.d.ts`: types for relative `.css` imports and files from the `public` folder
+- `effect()` returns a disposer function
+
+### Changed
+- Dependencies are collected again on every run and the ones no longer used are
+  unsubscribed and removed automatically (before, subscriptions were never removed)
+- **Behavior change:** effects created inside another effect are now disposed
+  automatically when the parent re-runs or is disposed
+- State equality uses `Object.is` (`NaN` no longer re-triggers effects)
+
+### Fixed
+- Nested effects: the outer effect stopped tracking after an inner effect finished
+- Effects kept updating for branches they no longer read, and leaked memory
+- An error inside a cleanup no longer leaves an effect stuck
+
+---
+
+## [2.2.2] - 2026-09-15
+
+### Changed
+
+- Updated `class` and `className` attribute types to include `string | null` for better IDE autocomplete suggestions (such as `=""` instead of `{}`).
+
+---
+
 ## [2.1.0] - 2026-07-18
 
 ### Added
@@ -16,6 +56,8 @@
 
 - **Decoupled Monorepo Architecture:** Officially extracted and isolated `vite-plugin-levelojs` into its own standalone distinct ecosystem workspace package to optimize release scopes, ease cross-dependency configurations, and clean up core library distributed artifacts.
 
+---
+
 ## [2.0.3] - 2026-07-14
 
 ### Fixed
@@ -27,6 +69,8 @@
 
 - **Case-Insensitive Attribute Mapping:** Refactored the core HyperScript factory (`h`) inside `dom.ts` to process reactive markup strings using lowercase normalization, ensuring consistent framework behavior even when browsers normalize JSX custom properties down to standard DOM tokens.
 
+---
+
 ## [2.0.2] - 2026-07-14
 
 ### Added
@@ -36,6 +80,8 @@
 ### Changed
 
 - **TypeScript Migration:** Ported the entire core codebase from JavaScript (`src/compiler/index.js`) to full strict TypeScript (`src/compiler/index.ts`) to provide enterprise-grade safety, proper typing for compilation contexts, and deep IDE autocompletion.
+
+---
 
 ## [2.0.1] - 2026-07-11
 
@@ -157,12 +203,3 @@
 - `Pages` / `Page` — file-based routing
 - `h()` — real DOM element factory (internal)
 - `leveloPlugin` — Vite plugin for JSX compilation
-## 2.2.0
-
-- Connected the public `h()` API to the new render-tree renderer.
-- Replaced direct DOM mounting with the renderer-backed `render()` API.
-- Added web node deletion and native registry cleanup.
-- Preserved styles, events, properties, text updates, replacement, insertion, and ordering through the renderer operation pipeline.
-- Added reactive component rendering through the existing `state()` and `effect()` primitives.
-- Removed obsolete renderer command, mutation, scheduler, container, and duplicate adapter layers.
-- Added a public web renderer example and package-ready Vite setup.

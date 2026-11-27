@@ -1,24 +1,38 @@
 # levelo-cli
 
-Official command-line interface, development server, and bundler for **LeveloJS** applications.
+CLI tooling for Levelo JS projects.
 
-> **⚠️ Early Beta / Pre-Release Notice**
->
-> `levelo-cli` is currently in active early development and has **not** reached its public MVP release yet.
->
-> **Please do not install or use this package in any project yet.** Commands, flags, internal APIs, and bundling behavior are still under active construction and subject to breaking changes without notice.
+> **Status:** Early preview (`0.1.0`) — best suited for testing and pre-release evaluation. For standard development, using Vite with `vite-plugin-levelojs` is recommended.
 
-## Status
+## Installation
 
-- **Stage:** Pre-MVP / Early Development
-- **Purpose of this release:** Package name reservation and internal testing
-- **Stability:** Experimental — not intended for general or production use
+```bash
+npm install -D levelo-cli
+```
 
-## Ecosystem
+or
 
-- **levelojs** — Core fine-grained reactive UI framework
-- **vite-plugin-levelojs** — Official Vite integration plugin
-- **create-levelo-app** — Project scaffolding CLI *(in progress)*
+```bash
+pnpm add -D levelo-cli
+```
+
+## Usage
+
+Run commands via your package runner or `npx`:
+
+```bash
+npx levelo --help
+```
+
+## Requirements
+
+- `levelojs` (`>= 2.3.0` for `<>...</>` fragment support)
+- Node.js
+
+## Resources
+
+- Documentation: https://levelojs.motionmindx.com
+- Source Code: https://github.com/levelojs/LeveloJs
 
 ## License
 

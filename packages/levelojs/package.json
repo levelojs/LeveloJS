@@ -1,7 +1,7 @@
 {
   "name": "levelojs",
-  "version": "2.2.0",
-  "description": "The core runtime for the Levelo JS framework, including its platform-neutral renderer and web DOM renderer.",
+  "version": "2.3.1",
+  "description": "A lightweight JavaScript framework with zero runtime overhead, targeting the real DOM on the web and a WebView-free native engine. Maintained by Motion Mind X.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -44,19 +44,19 @@
     "ui-builder",
     "core",
     "Levelo Js",
-    "Motion Mind"
+    "Motion Mind X"
   ],
   "author": "MotionMind2007",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MotionMind2007/Levelo-Js.git"
+    "url": "git+https://github.com/levelojs/LeveloJS.git"
   },
   "bugs": {
-    "url": "https://github.com/MotionMind2007/Levelo-Js/issues"
+    "url": "https://github.com/levelojs/LeveloJS/issues"
   },
-  "homepage": "https://levelojs.motionmind.me",
+  "homepage": "https://levelojs.motionmindx.com",
   "devDependencies": {
     "@types/node": "^26.1.1",
     "@vitest/ui": "^5.0.1",

@@ -1,126 +1,194 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import readline from 'readline';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as p from '@clack/prompts';
+import chalk from 'chalk';
+import ora from 'ora';
 
+const execPromise = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const targetArg = process.argv[2];
+const SKIP = new Set([
+  'node_modules',
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'bun.lockb',
+  '.git',
+  'dist',
+  'output',
+  '.levelo',
+]);
 
-if (!targetArg) {
-  console.error('\x1b[31m%s\x1b[0m', 'Syntax Error: Missing targeted deployment path setup.');
-  console.log('Usage syntax matrix:');
-  console.log('  npx create-levelo-app <project-directory>');
-  console.log('  npx create-levelo-app .');
-  process.exit(1);
-}
-
-const projectDir = targetArg === '.' ? process.cwd() : path.resolve(process.cwd(), targetArg);
-const projectName = path.basename(projectDir);
+const templates = [
+  {
+    value: 'vite-tsx',
+    label: 'Vite + TypeScript',
+    hint: 'Recommended - Stable, Vite powered',
+    folder: path.join('vite', 'tsx'),
+  },
+  {
+    value: 'vite-jsx',
+    label: 'Vite + JavaScript',
+    hint: 'Stable, Vite powered, no TypeScript',
+    folder: path.join('vite', 'jsx'),
+  },
+  {
+    value: 'levelo-tsx',
+    label: 'Levelo CLI + TypeScript',
+    hint: 'Early preview - Multi-platform, no Vite config',
+    folder: path.join('levelo-cli', 'tsx'),
+  },
+  {
+    value: 'levelo-jsx',
+    label: 'Levelo CLI + JavaScript',
+    hint: 'Early preview - Multi-platform, no TypeScript',
+    folder: path.join('levelo-cli', 'jsx'),
+  },
+];
 
 function copyFolderSync(from, to) {
   if (!fs.existsSync(to)) {
     fs.mkdirSync(to, { recursive: true });
   }
 
-  fs.readdirSync(from).forEach((element) => {
+  for (const element of fs.readdirSync(from)) {
+    if (SKIP.has(element)) continue;
     const sourcePath = path.join(from, element);
     const destPath = path.join(to, element);
-
-    if (
-      element === 'node_modules' ||
-      element === 'package-lock.json' ||
-      element === 'pnpm-lock.yaml' ||
-      element === 'yarn.lock' ||
-      element === '.git'
-    )
-      return;
-
     if (fs.lstatSync(sourcePath).isDirectory()) {
       copyFolderSync(sourcePath, destPath);
     } else {
       fs.copyFileSync(sourcePath, destPath);
     }
-  });
+  }
 }
 
-const options = [
-  { name: 'JavaScript (JSX)', value: 'jsx' },
-  { name: 'TypeScript (TSX)', value: 'tsx' },
-];
-let selectedIndex = 0;
+async function main() {
+  console.log('');
+  p.intro(chalk.bgHex('#a78bfa').bold.white(' Levelo JS Framework '));
 
-let isFirstRender = true;
+  // ---------- Package Manager ----------
+  const userAgent = process.env.npm_config_user_agent;
 
-function renderMenu() {
-  if (!isFirstRender) {
-    readline.moveCursor(process.stdout, 0, -3);
-    readline.clearScreenDown(process.stdout);
+  let packageManager = 'npm';
+
+  if (userAgent?.startsWith('pnpm/')) {
+    packageManager = 'pnpm';
+  } else if (userAgent?.startsWith('yarn/')) {
+    packageManager = 'yarn';
+  } else if (userAgent?.startsWith('bun/')) {
+    packageManager = 'bun';
+  }
+
+  const installCmd = packageManager === 'npm'
+    ? 'npm install --no-audit --no-fund'
+    : packageManager === 'pnpm'
+    ? 'pnpm install --allow-build esbuild'
+    : `${packageManager} install`;
+
+  const runCmd = packageManager === 'npm'
+    ? 'npm run dev'
+    : `${packageManager} dev`;
+
+  // ---------- Args ----------
+  const args = process.argv.slice(2);
+  const templateFlagIndex = args.indexOf('--template');
+  const templateFlag = templateFlagIndex !== -1 ? args[templateFlagIndex + 1] : null;
+  const noInstall = args.includes('--no-install');
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+Usage:
+  npx create-levelo-app <project-name>
+  npx create-levelo-app <project-name> --template vite-tsx
+  npx create-levelo-app . --template levelo-tsx
+
+Templates:
+  vite-tsx    Vite + TypeScript (Recommended)
+  vite-jsx    Vite + JavaScript
+  levelo-tsx  Levelo CLI + TypeScript (Early preview)
+  levelo-jsx  Levelo CLI + JavaScript (Early preview)
+`);
+    process.exit(0);
+  }
+
+  let targetArg = args.find((a) => !a.startsWith('--') && a !== templateFlag);
+
+  if (!targetArg) {
+    targetArg = await p.text({
+      message: 'Where should we create your Levelo project?',
+      placeholder: './my-levelo-app',
+      defaultValue: './my-levelo-app',
+      validate(value) {
+        if (value.trim().length === 0) return 'Directory path cannot be empty!';
+      },
+    });
+
+    if (p.isCancel(targetArg)) {
+      p.cancel('Operation cancelled.');
+      process.exit(0);
+    }
+  }
+
+  const projectDir = targetArg === '.' ? process.cwd() : path.resolve(process.cwd(), targetArg);
+  const projectName = path.basename(projectDir);
+
+  // ---------- Template select ----------
+  let templateId = templateFlag;
+
+  if (templateId) {
+    const found = templates.find((t) => t.value === templateId);
+    if (!found) {
+      p.cancel(`Unknown template "${templateId}". Available: vite-tsx, vite-jsx, levelo-tsx, levelo-jsx`);
+      process.exit(1);
+    }
   } else {
-    isFirstRender = false;
-  }
+    templateId = await p.select({
+      message: 'Select a template:',
+      options: templates.map((t) => ({
+        value: t.value,
+        label: t.label,
+        hint: t.hint,
+      })),
+    });
 
-  console.log('? \x1b[1m\x1b[36mSelect project template:\x1b[0m');
-
-  options.forEach((opt, index) => {
-    if (index === selectedIndex) {
-      console.log(`  \x1b[35m❯ ${opt.name}\x1b[0m`);
-    } else {
-      console.log(`    ${opt.name}`);
+    if (p.isCancel(templateId)) {
+      p.cancel('Operation cancelled.');
+      process.exit(0);
     }
-  });
-}
-
-readline.emitKeypressEvents(process.stdin);
-if (process.stdin.isTTY) {
-  process.stdin.setRawMode(true);
-  process.stdout.write('\x1b[?25l');
-}
-
-renderMenu();
-
-process.stdin.on('keypress', (str, key) => {
-  if (key.ctrl && key.name === 'c') {
-    if (process.stdin.isTTY) process.stdout.write('\x1b[?25h');
-    process.exit();
   }
 
-  if (key.name === 'up') {
-    selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-    renderMenu();
-  } else if (key.name === 'down') {
-    selectedIndex = (selectedIndex + 1) % options.length;
-    renderMenu();
-  } else if (key.name === 'return' || key.name === 'enter') {
-    if (process.stdin.isTTY) {
-      process.stdin.setRawMode(false);
-      process.stdout.write('\x1b[?25h');
-    }
-    process.stdin.removeAllListeners('keypress');
-
-    console.log('');
-    runScaffolder(options[selectedIndex].value);
-  }
-});
-
-function runScaffolder(templateFolder) {
-  const templateDir = path.join(__dirname, 'templates', templateFolder);
+  const template = templates.find((t) => t.value === templateId);
+  const templateDir = path.join(__dirname, 'templates', template.folder);
 
   if (!fs.existsSync(templateDir)) {
-    console.error(
-      '\x1b[31m%s\x1b[0m',
-      `\nError: Template "${templateFolder}" not found inside CLI package.`,
-    );
+    p.cancel(`Error: Template "${templateId}" not found inside CLI package.`);
     process.exit(1);
   }
 
-  console.log(
-    `🚀 Scaffolding a fresh Levelo JS (${templateFolder.toUpperCase()}) ecosystem inside: ${projectDir}...`,
-  );
+  if (fs.existsSync(projectDir) && fs.readdirSync(projectDir).length > 0 && targetArg !== '.') {
+    p.cancel(`Error: Folder "${targetArg}" already exists and is not empty.`);
+    process.exit(1);
+  }
+
+  // ---------- Alpha warning ----------
+  if (templateId.startsWith('levelo')) {
+    p.note(
+      'Levelo CLI is in early preview (alpha).\nFor production work, Vite + TypeScript is recommended.',
+      'Note'
+    );
+  }
+
+  const s = ora({
+    text: 'Scaffolding Levelo JS project...',
+    color: 'magenta',
+  }).start();
 
   try {
     copyFolderSync(templateDir, projectDir);
@@ -128,23 +196,45 @@ function runScaffolder(templateFolder) {
     const userPackageJsonPath = path.join(projectDir, 'package.json');
     if (fs.existsSync(userPackageJsonPath)) {
       const pkg = JSON.parse(fs.readFileSync(userPackageJsonPath, 'utf-8'));
-      pkg.name = projectName;
-      fs.writeFileSync(userPackageJsonPath, JSON.stringify(pkg, null, 2), 'utf-8');
+      if (targetArg !== '.') pkg.name = projectName;
+
+      // Only for pnpm users: allow esbuild build, keep template clean for npm/bun/yarn
+      if (packageManager === 'pnpm') {
+        pkg.pnpm = {
+          onlyBuiltDependencies: ['esbuild'],
+        };
+      }
+
+      fs.writeFileSync(userPackageJsonPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
     }
 
-    console.log('\n📦 Dependencies are being fetched via node package manager...');
-    execSync('npm install', { cwd: projectDir, stdio: 'inherit' });
-
-    console.log(`🎉 Success! Levelo JS project "${projectName}" is ready.`);
-    console.log('\nRun the following sequences to bring the compile matrix online:\n');
-
-    if (targetArg !== '.') {
-      console.log(`  cd ${targetArg}`);
+    // npm strips .gitignore, some templates use _gitignore
+    const gitignoreAlt = path.join(projectDir, '_gitignore');
+    if (fs.existsSync(gitignoreAlt)) {
+      fs.renameSync(gitignoreAlt, path.join(projectDir, '.gitignore'));
     }
-    console.log('  npm run dev\n');
-    process.exit(0);
+
+    if (!noInstall) {
+      s.text = `Installing dependencies via ${packageManager}...`;
+      await execPromise(installCmd, { cwd: projectDir });
+    } else {
+      s.text = `Skipped install (--no-install)`;
+    }
+
+    s.succeed('Project created successfully!');
+
+    const nextSteps = targetArg !== '.'
+      ? `cd ${targetArg}\n${noInstall ? `${installCmd}\n` : ''}${runCmd}`
+      : `${noInstall ? `${installCmd}\n` : ''}${runCmd}`;
+
+    p.note(nextSteps, 'Next steps');
+    p.outro(chalk.green(`Happy coding with Levelo JS!`));
   } catch (error) {
-    console.error('\n\x1b[31m%s\x1b[0m', 'Core generation matrix failure:', error);
+    s.fail('Failed to scaffold project.');
+    const detailedError = error.stderr || error.stdout || error.message;
+    p.cancel(`Execution error:\n${detailedError}`);
     process.exit(1);
   }
 }
+
+main();

@@ -1,6 +1,6 @@
 {
   "name": "create-levelo-app",
-  "version": "2.0.3",
+  "version": "2.2.1",
   "description": "The official standard boilerplate bootstrapper for Levelo JS applications",
   "type": "module",
   "bin": {
@@ -9,10 +9,11 @@
   "files": [
     "cli.js",
     "templates",
+    "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    
   },
   "keywords": [
     "levelo",
@@ -26,14 +27,19 @@
   "author": "MotionMind2007",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MotionMind2007/Levelo-Js/issues"
+    "url": "https://github.com/levelojs/LeveloJs/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MotionMind2007/Levelo-Js.git"
+    "url": "git+https://github.com/levelojs/LeveloJs.git"
   },
-  "homepage": "https://github.com/MotionMind2007/Levelo-Js#readme",
+  "homepage": "https://github.com/levelojs/LeveloJs#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.9.0",
+    "chalk": "^6.0.1",
+    "ora": "^10.0.0"
   }
 }
